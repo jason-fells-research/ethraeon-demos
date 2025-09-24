@@ -1,0 +1,27 @@
+<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Field Triage Dashboard — ETHRAEON</title><link rel="stylesheet" href="/assets/brand.css">
+<body><div class="container">
+  <div class="hero"><div class="logo"></div><div><h1>Field Triage Dashboard</h1>
+  <div class="small">Intake → classify → safe actions. Governance baked in.</div></div></div>
+
+  <div class="card"><div class="badge">SIMULATED</div>
+    <h2>Try it (20 seconds)</h2>
+    <ul><li>Pick a case.</li><li>We show recommended actions and blockers.</li></ul>
+    <select id="caseSel"></select>
+    <div id="caseView" class="small" style="margin-top:10px"></div>
+  </div>
+</div>
+<script src="/assets/demo.js"></script>
+<script>
+let cases=[]; loadJSON('/data/triage.json').then(d=>{
+  cases=d.cases; const sel=el('#caseSel');
+  cases.forEach((c,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=`${c.id} — ${c.summary}`; sel.appendChild(o); });
+  sel.onchange=render; render();
+  function render(){
+    const c=cases[sel.value||0];
+    el('#caseView').innerHTML=`<b>Channel:</b> ${c.channel}<br><b>Severity:</b> ${c.severity}
+    <br><b>Recommended actions:</b> ${c.actions.join(', ')}`;
+  }
+});
+</script>
+</body></html>

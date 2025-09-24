@@ -1,0 +1,19 @@
+<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EcoTrack Pro — ETHRAEON</title><link rel="stylesheet" href="/assets/brand.css">
+<body><div class="container">
+  <div class="hero"><div class="logo"></div><div><h1>EcoTrack Pro</h1>
+  <div class="small">Impact deltas from simple interventions.</div></div></div>
+
+  <div class="card"><div class="badge">SIMULATED</div>
+    <h2>Snapshot</h2>
+    <div id="metrics" class="small">Loading…</div>
+  </div>
+</div>
+<script src="/assets/demo.js"></script>
+<script>
+loadJSON('/data/ecotrack.json').then(d=>{
+  document.querySelector('#metrics').innerHTML = d.metrics.map(m=>`<div class="card" style="margin:8px 0">
+  <b>${m.kpi}</b><br>Baseline: ${m.baseline} → Current: ${m.current} (<b>${m.delta}</b>)</div>`).join('');
+});
+</script>
+</body></html>
