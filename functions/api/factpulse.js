@@ -1,4 +1,12 @@
-import data from '../../data/factpulse.json' assert { type: 'json' };
 export async function onRequest() {
-  return new Response(JSON.stringify(data), { headers: { 'content-type':'application/json' }});
+  const data = {
+    "queries": [
+      {"text":"Video claims city banned tap water", "score":0.82, "signals":["low-source-cred","misleading-caption"], "actions":["link-to-official","flag-internal"]},
+      {"text":"Brand boycott hashtag spike", "score":0.61, "signals":["coordinated-boost"], "actions":["monitor","prepare-FAQ"]},
+      {"text":"Deepfake of CEO", "score":0.93, "signals":["synthetic-face","voice-clone"], "actions":["takedown-request","legal-review","platform escalation"]}
+    ]
+  };
+  return new Response(JSON.stringify(data), {
+    headers: { 'content-type': 'application/json' }
+  });
 }
