@@ -15,12 +15,12 @@
     <div id="bias" class="small" style="margin-top:12px">Loading…</div>
   </div>
 
-  <p class="small">Status: Live API endpoint powered by Cloudflare Pages Functions.</p>
+  <p class="small">Status: Interactive demo with simulated data.</p>
 </div>
 <script src="/assets/demo.js"></script>
 <script>
 let data;
-loadJSON('/api/bias').then(d=>{
+loadJSON('/data/bias.json').then(d=>{
   data=d;
   document.querySelector('#bias').innerHTML = d.tests.map(t=>`<div class="card" style="margin:8px 0">
   <b>Policy:</b> ${t.policy}<br><b>Result:</b> ${t.pass?'PASS':'FAIL'}<br><b>Details:</b> ${t.details}</div>`).join('');
