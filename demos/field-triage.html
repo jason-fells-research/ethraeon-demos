@@ -13,7 +13,7 @@
 </div>
 <script src="/assets/demo.js"></script>
 <script>
-let cases=[]; loadJSON('/data/triage.json').then(d=>{
+let cases=[]; loadJSON('/api/triage').then(d=>{
   cases=d.cases; const sel=el('#caseSel');
   cases.forEach((c,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=`${c.id} — ${c.summary}`; sel.appendChild(o); });
   sel.onchange=render; render();

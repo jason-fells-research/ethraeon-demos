@@ -18,21 +18,17 @@
     <div id="stream" class="small">Loading…</div>
   </div>
 
-  <p class="small">Status: Simulated data. Backend endpoint can be wired in later.</p>
+  <p class="small">Status: Live API endpoints powered by Cloudflare Pages Functions.</p>
 </div>
 <script src="/assets/demo.js"></script>
 <script>
 let samples=[];
-loadJSON('/data/factpulse.json').then(d=>{
+loadJSON('/api/factpulse').then(d=>{
   samples=d.queries;
   el('#stream').innerHTML = samples.map(s=>`<div class="card" style="margin:8px 0">
     <b>${s.text}</b><br>Risk score: ${(s.score*100|0)}%<br>Signals: ${s.signals.join(', ')}<br>Actions: ${s.actions.join(', ')}
   </div>`).join('');
 });
-el('#scoreBtn').onclick=(e)=>{e.preventDefault();
-  const t=el('#q').value.trim(); if(!t){el('#result').textContent='Enter some text first.';return}
-  const pick=samples[(Math.random()*samples.length)|0];
-  el('#result').innerHTML=`<b>${t}</b><br>Risk score: ${(pick.score*100|0)}%<br>Signals: ${pick.signals.join(', ')}<br>Suggested: ${pick.actions.join(', ')}`;
-};
+el('#scoreBtn').onclick=(e)=>{e.preventDefault();const t=el('#q').value.trim();if(!t){el('#result').textContent='Enter some text first.';return}fetch('/api/score',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:t})}).then(r=>r.json()).then(p=>{el('#result').innerHTML=`<b>${t}</b><br>Risk score: ${(p.score*100|0)}%<br>Signals: ${p.signals.join(', ')}<br>Suggested: ${p.actions.join(', ')}`}).catch(()=>{el('#result').textContent='Scoring service unavailable.';});};
 </script>
 </body></html>

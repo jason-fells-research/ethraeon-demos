@@ -11,7 +11,7 @@
 </div>
 <script src="/assets/demo.js"></script>
 <script>
-loadJSON('/data/ecotrack.json').then(d=>{
+loadJSON('/api/ecotrack').then(d=>{
   document.querySelector('#metrics').innerHTML = d.metrics.map(m=>`<div class="card" style="margin:8px 0">
   <b>${m.kpi}</b><br>Baseline: ${m.baseline} → Current: ${m.current} (<b>${m.delta}</b>)</div>`).join('');
 });
