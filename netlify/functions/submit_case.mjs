@@ -1,38 +1,29 @@
-import { Pool } from '@neondatabase/serverless';
+import { neon, neonConfig } from "@neondatabase/serverless";
 
-const pool = new Pool({ connectionString: process.env.NEON_DATABASE_URL });
+neonConfig.fetchConnectionCache = true;
+const sql = neon(process.env.NEON_DATABASE_URL);
 
 export async function handler(event) {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Use POST' };
-  }
-
-  let payload = {};
-  try { payload = JSON.parse(event.body || '{}'); } catch {}
-
   try {
-    // Ensure table exists (idempotent)
-    await pool.query(`
-      create table if not exists demo_events (
-        id bigserial primary key,
-        kind text,
-        payload jsonb,
-        created_at timestamptz default now()
-      )
-    `);
+    const { caseId, summary } = JSON.parse(event.body || "{}");
+    if (!caseId || !summary) {
+      return { statusCode: 400, body: "Missing caseId or summary" };
+    }
 
-    const kind = payload.kind || 'factpulse_submission';
-    await pool.query(
-      'insert into demo_events(kind, payload) values($1, $2)',
-      [kind, payload]
-    );
+    await sql`create table if not exists demo_cases(
+      id text primary key,
+      summary text,
+      created_at timestamptz default now()
+    )`;
 
-    return {
-      statusCode: 200,
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ ok: true })
-    };
+    await sql`
+      insert into demo_cases (id, summary)
+      values (${caseId}, ${summary})
+      on conflict (id) do update set summary = excluded.summary
+    `;
+
+    return { statusCode: 200, headers: { "content-type": "application/json" }, body: JSON.stringify({ ok: true }) };
   } catch (e) {
-    return { statusCode: 500, body: e.message };
+    return { statusCode: 500, body: String(e?.message || e) };
   }
 }
