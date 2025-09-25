@@ -1,0 +1,33 @@
+<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Constitutional Bias Dashboard — ETHRAEON</title><link rel="stylesheet" href="/assets/brand.css">
+<body><div class="container">
+  <div class="hero"><div class="logo"></div><div><h1>Constitutional Bias Dashboard</h1>
+  <div class="small">Monitor outputs vs. policy; spot drifts; export audits.</div></div></div>
+
+  <div class="card"><div class="badge">SIMULATED</div>
+    <h2>What this shows</h2>
+    <ul>
+      <li>Policy checks pass/fail.</li>
+      <li>Examples with rationales.</li>
+      <li>"Export audit" button (downloads JSON).</li>
+    </ul>
+    <a class="btn" href="#" id="export">Export audit JSON</a>
+    <div id="bias" class="small" style="margin-top:12px">Loading…</div>
+  </div>
+
+  <p class="small">Status: Interactive demo with simulated data.</p>
+</div>
+<script src="/assets/demo.js"></script>
+<script>
+let data;
+loadJSON('/data/bias.json').then(d=>{
+  data=d;
+  document.querySelector('#bias').innerHTML = d.tests.map(t=>`<div class="card" style="margin:8px 0">
+  <b>Policy:</b> ${t.policy}<br><b>Result:</b> ${t.pass?'PASS':'FAIL'}<br><b>Details:</b> ${t.details}</div>`).join('');
+});
+document.querySelector('#export').onclick=(e)=>{ e.preventDefault();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='bias-audit.json'; a.click(); URL.revokeObjectURL(url);
+};
+</script>
+</body></html>

@@ -1,0 +1,65 @@
+
+
+<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FactPulse Pro — ETHRAEON</title><link rel="stylesheet" href="/assets/brand.css">
+<body><div class="container">
+  <div class="hero"><div class="logo"></div><div><h1>FactPulse Pro</h1>
+  <div class="small">Real-time misinformation signals & risk scoring.</div></div></div>
+
+  <div class="card">
+    <div class="badge">LIVE / Simulated</div>
+    <h2>How to use (30 seconds)</h2>
+    <ul><li>Type a headline or paste a post.</li><li>Click "Score".</li><li>We show risk score, signals, and suggested actions.</li></ul>
+    <input id="q" placeholder="Paste headline or claim…" style="width:100%;padding:10px;border-radius:10px;border:1px solid #2a2f38;background:#0e1014;color:#e6e6e6">
+    <a class="btn" href="#" id="scoreBtn">Score</a>
+    <div id="result" class="small" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2>Sample stream</h2>
+    <div id="stream" class="small">Loading…</div>
+  </div>
+
+  <p class="small">Status: Interactive demo with simulated data.</p>
+</div>
+<script src="/assets/demo.js"></script>
+<script>
+let samples=[];
+loadJSON('/data/factpulse.json').then(d=>{
+  samples=d.queries;
+  el('#stream').innerHTML = samples.map(s=>`<div class="card" style="margin:8px 0">
+    <b>${s.text}</b><br>Risk score: ${(s.score*100|0)}%<br>Signals: ${s.signals.join(', ')}
+    <br>Actions: ${s.actions.join(', ')}
+  </div>`).join('');
+});
+el('#scoreBtn').onclick=(e)=>{
+  e.preventDefault();
+  const t=el('#q').value.trim();
+  if(!t){ el('#result').textContent='Enter some text first.'; return }
+  fetch('/.netlify/functions/score',{
+    method:'POST',
+    headers:{'content-type':'application/json'},
+    body: JSON.stringify({ text:t })
+  }).then(r=>r.json()).then(p=>{
+    el('#result').innerHTML = `<b>${t}</b><br>Risk score: ${(p.score*100|0)}%<br>
+      Signals: ${p.signals.join(', ')}<br>Suggested: ${p.actions.join(', ')}`
+  }).catch(()=>{ el('#result').textContent='Scoring service unavailable.'; });
+};
+</script>
+<script>
+fetch('/.netlify/functions/score', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ text:t }) })
+  .then(r=>r.json())
+  .then(p=>{
+    el('#result').innerHTML = `<b>${t}</b><br>Risk score: ${(p.score*100|0)}%<br>
+      Signals: ${p.signals.join(', ')}<br>Suggested: ${p.actions.join(', ')}`;
+
+    fetch('/.netlify/functions/submit_case.mjs', {
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body: JSON.stringify({ kind:'factpulse_submission', input:t, result:p })
+    }).catch(()=>{});
+  })
+  .catch(()=>{ el('#result').textContent='Scoring service unavailable.'; });
+</script>
+</body></html>
+
