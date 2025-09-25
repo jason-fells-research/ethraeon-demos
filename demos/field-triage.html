@@ -4,24 +4,59 @@
   <div class="hero"><div class="logo"></div><div><h1>Field Triage Dashboard</h1>
   <div class="small">Intake → classify → safe actions. Governance baked in.</div></div></div>
 
-  <div class="card"><div class="badge">SIMULATED</div>
-    <h2>Try it (20 seconds)</h2>
-    <ul><li>Pick a case.</li><li>We show recommended actions and blockers.</li></ul>
-    <select id="caseSel"></select>
-    <div id="caseView" class="small" style="margin-top:10px"></div>
-  </div>
+  <div class="card">
+  <div class="badge">LIVE</div>
+  <h2>Open a case (20 seconds)</h2>
+  <form id="triageForm">
+    <label class="small" for="caseId">Case ID</label>
+    <input id="caseId" style="width:100%;margin:4px 0 8px" placeholder="e.g., INC-{{auto}}">
+    <label class="small" for="summary">Summary</label>
+    <textarea id="summary" rows="3" style="width:100%;margin:4px 0 12px" placeholder="Threat of self-harm in product community"></textarea>
+    <button id="submitBtn">Submit</button>
+    <span id="submitMsg" class="small" style="margin-left:8px"></span>
+  </form>
 </div>
+
+<div class="card">
+  <h2>Recent cases</h2>
+  <div id="recent">Loading…</div>
+</div>
+
 <script src="/assets/demo.js"></script>
 <script>
-let cases=[]; loadJSON('/data/triage.json').then(d=>{
-  cases=d.cases; const sel=el('#caseSel');
-  cases.forEach((c,i)=>{ const o=document.createElement('option'); o.value=i; o.textContent=`${c.id} — ${c.summary}`; sel.appendChild(o); });
-  sel.onchange=render; render();
-  function render(){
-    const c=cases[sel.value||0];
-    el('#caseView').innerHTML=`<b>Channel:</b> ${c.channel}<br><b>Severity:</b> ${c.severity}
-    <br><b>Recommended actions:</b> ${c.actions.join(', ')}`;
+  function htmlesc(s){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]))}
+
+  async function loadRecent(){
+    try{
+      const r = await fetch('/.netlify/functions/list_cases?limit=10&format=html');
+      const t = await r.text();
+      document.getElementById('recent').innerHTML = t;
+    }catch(e){
+      document.getElementById('recent').textContent = 'Unable to load recent cases.';
+    }
   }
-});
+  document.getElementById('triageForm').onsubmit = async (e)=>{
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    const msg = document.getElementById('submitMsg');
+    const caseId = document.getElementById('caseId').value.trim() || `INC-${Math.floor(Math.random()*9000+1000)}`;
+    const summary = document.getElementById('summary').value.trim();
+    if(!summary){ msg.textContent = 'Summary required.'; return; }
+    btn.disabled = true; msg.textContent = 'Submitting…';
+    try{
+      const r = await fetch('/.netlify/functions/submit_case',{ method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ caseId, summary })});
+      if(!r.ok){ throw new Error(await r.text())}
+      msg.textContent = 'Saved ✓';
+      document.getElementById('caseId').value = '';
+      document.getElementById('summary').value = '';
+      loadRecent();
+    }catch(err){
+      msg.textContent = 'Error saving.';
+    }finally{
+      btn.disabled = false;
+    }
+  };
+
+  loadRecent();
 </script>
 </body></html>
