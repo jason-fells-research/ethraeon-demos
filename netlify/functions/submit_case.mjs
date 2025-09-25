@@ -1,11 +1,18 @@
-import { neon, neonConfig } from "@neondatabase/serverless";
+import { neon } from '@neondatabase/serverless';
 
-neonConfig.fetchConnectionCache = true;
-const sql = neon(process.env.NEON_DATABASE_URL);
+const dbUrl =
+  process.env.NEON_DATABASE_URL ||
+  process.env.NETLIFY_DATABASE_URL ||
+  process.env.NETLIFY_DATABASE_URL_UNPOOLED;
 
-export async function handler(event) {
-  try {
-    const { caseId, summary } = JSON.parse(event.body || "{}");
+if (!dbUrl) {
+  return new Response(
+    JSON.stringify({ error: 'Missing NEON_DATABASE_URL/NETLIFY_DATABASE_URL' }),
+    { status: 500, headers: { 'content-type': 'application/json' } }
+  );
+}
+
+const sql = neon(dbUrl);
     if (!caseId || !summary) {
       return { statusCode: 400, body: "Missing caseId or summary" };
     }
