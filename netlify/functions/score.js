@@ -1,35 +1,56 @@
-// netlify/functions/score.js
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Use POST' };
-  }
-
-  let text = '';
+export default async (req) => {
   try {
-    const body = JSON.parse(event.body || '{}');
-    text = (body.text || '').toLowerCase();
-  } catch (_) {}
+    if (req.method !== 'POST') {
+      return new Response('Use POST', { status: 405 });
+    }
+    const { text = '' } = await req.json().catch(() => ({ text: '' }));
+    const t = (text || '').trim();
+    if (!t) return new Response(JSON.stringify({ error: 'no text' }), { status: 400 });
 
-  const signals = [];
-  let score = 0.35;
+    const lc = t.toLowerCase();
 
-  const add = (n, s) => { score += n; signals.push(s); };
+    let score = 0.35;
+    const signals = new Set();
 
-  if (/\bdeepfake|voice clone|face swap\b/.test(text)) add(0.35, 'synthetic-media-indicators');
-  if (/\bbanned|outlawed|illegal\b/.test(text))        add(0.15, 'loaded-language');
-  if (/\bsource\b/.test(text) === false && text.length > 20) add(0.10, 'no-source-citation');
-  if (/\bshare|boost|retweet|viral\b/.test(text))      add(0.05, 'coordinated-amplification');
-  if (/\b5g|chemtrails|flat earth|crisis actor\b/.test(text)) add(0.25, 'known-disinfo-memes');
+    const bumps = [
+      { re: /\bdeepfake|ai-generated|voice clone|face swap\b/i, bump: 0.25, signal: 'synthetic-media-indicators' },
+      { re: /\bthreatens|exposed|leaked|shocking|breaking\b/i, bump: 0.15, signal: 'sensational-language' },
+      { re: /\bsource\b/i, bump: -0.05, signal: 'source-mentioned' },
+      { re: /\bfactcheck|fact-check|snopes|politi?fact\b/i, bump: -0.12, signal: 'fact-check-cited' },
+      { re: /\babc fake news|lamestream|propaganda\b/i, bump: 0.12, signal: 'delegitimizing-language' },
+    ];
+    bumps.forEach(({ re, bump, signal }) => {
+      if (re.test(t)) {
+        score += bump;
+        signals.add(signal);
+      }
+    });
 
-  score = Math.max(0, Math.min(0.99, score));
+    const capsRatio = (t.replace(/[^A-Z]/g, '').length) / Math.max(1, t.length);
+    if (capsRatio > 0.25) { score += 0.08; signals.add('all-caps-emphasis'); }
+    const exclam = (t.match(/!/g) || []).length;
+    if (exclam >= 2) { score += 0.06; signals.add('exclamation-burst'); }
 
-  let actions = ['monitor'];
-  if (score >= 0.7) actions = ['platform escalation', 'takedown request', 'legal review'];
-  else if (score >= 0.5) actions = ['add source link', 'internal flag', 'prepare FAQ'];
+    if (!/\bhttps?:\/\//i.test(t)) signals.add('no-source-citation');
 
-  return {
-    statusCode: 200,
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ score, signals, actions })
-  };
+    score += (Math.random() - 0.5) * 0.06;
+
+    score = Math.max(0.05, Math.min(0.95, score));
+
+    let actions = ['monitor'];
+    if (score >= 0.75) actions = ['platform escalation', 'takedown request', 'legal review'];
+    else if (score >= 0.55) actions = ['request sources', 'label for context', 'prepare FAQ'];
+
+    return new Response(
+      JSON.stringify({
+        input: t,
+        score: Number(score.toFixed(2)),
+        signals: Array.from(signals),
+        actions
+      }),
+      { headers: { 'content-type': 'application/json' } }
+    );
+  } catch (e) {
+    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+  }
 };
