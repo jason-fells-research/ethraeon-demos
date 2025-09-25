@@ -1,36 +1,58 @@
 import { neon } from '@neondatabase/serverless';
 
-const dbUrl =
-  process.env.NEON_DATABASE_URL ||
-  process.env.NETLIFY_DATABASE_URL ||
-  process.env.NETLIFY_DATABASE_URL_UNPOOLED;
-
-if (!dbUrl) {
-  return new Response(
-    JSON.stringify({ error: 'Missing NEON_DATABASE_URL/NETLIFY_DATABASE_URL' }),
-    { status: 500, headers: { 'content-type': 'application/json' } }
-  );
-}
-
-const sql = neon(dbUrl);
-    if (!caseId || !summary) {
-      return { statusCode: 400, body: "Missing caseId or summary" };
+export async function handler(event) {
+  try {
+    if (event.httpMethod !== 'POST') {
+      return {
+        statusCode: 405,
+        body: JSON.stringify({ error: 'Method not allowed, use POST' }),
+      };
     }
 
-    await sql`create table if not exists demo_cases(
-      id text primary key,
-      summary text,
-      created_at timestamptz default now()
-    )`;
+    const body = JSON.parse(event.body || '{}');
+    const { caseId, summary } = body;
+
+    if (!caseId || !summary) {
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error: 'caseId and summary are required' }),
+      };
+    }
+
+    const dbUrl =
+      process.env.NEON_DATABASE_URL ||
+      process.env.NETLIFY_DATABASE_URL ||
+      process.env.NETLIFY_DATABASE_URL_UNPOOLED;
+
+    if (!dbUrl) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: 'Database URL not set in environment' }),
+      };
+    }
+
+    const sql = neon(dbUrl);
 
     await sql`
-      insert into demo_cases (id, summary)
-      values (${caseId}, ${summary})
-      on conflict (id) do update set summary = excluded.summary
+      INSERT INTO cases (case_id, summary)
+      VALUES (${caseId}, ${summary})
     `;
 
-    return { statusCode: 200, headers: { "content-type": "application/json" }, body: JSON.stringify({ ok: true }) };
-  } catch (e) {
-    return { statusCode: 500, body: String(e?.message || e) };
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        message: 'Case submitted successfully',
+        caseId,
+        summary,
+      }),
+    };
+  } catch (err) {
+    console.error('submit_case error', err);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({
+        error: err.message || 'Unknown error in submit_case',
+      }),
+    };
   }
 }
