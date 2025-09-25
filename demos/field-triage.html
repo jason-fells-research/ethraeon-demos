@@ -8,13 +8,24 @@
   <div class="badge">LIVE</div>
   <h2>Open a case (20 seconds)</h2>
   <form id="triageForm">
-    <label class="small" for="caseId">Case ID</label>
-    <input id="caseId" style="width:100%;margin:4px 0 8px" placeholder="e.g., INC-{{auto}}">
-    <label class="small" for="summary">Summary</label>
-    <textarea id="summary" rows="3" style="width:100%;margin:4px 0 12px" placeholder="Threat of self-harm in product community"></textarea>
-    <button id="submitBtn">Submit</button>
-    <span id="submitMsg" class="small" style="margin-left:8px"></span>
-  </form>
+  <label class="small" for="category">Category</label>
+  <select id="category" style="width:100%;margin:4px 0 8px">
+    <option>Safety</option>
+    <option>Data leak</option>
+    <option>Harassment</option>
+    <option>Brand risk</option>
+    <option>Other</option>
+  </select>
+
+  <label class="small" for="summary">Summary (one sentence)</label>
+  <textarea id="summary" rows="3" style="width:100%;margin:4px 0 12px" placeholder="Brief summary of the incident"></textarea>
+
+  <label class="small" for="caseId">Case ID (optional)</label>
+  <input id="caseId" style="width:100%;margin:4px 0 8px" placeholder="Leave blank to auto-create">
+
+  <button id="submitBtn">Submit</button>
+  <span id="submitMsg" class="small" style="margin-left:8px"></span>
+</form>
 </div>
 
 <div class="card">
@@ -24,39 +35,13 @@
 
 <script src="/assets/demo.js"></script>
 <script>
-  function htmlesc(s){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]))}
-
-  async function loadRecent(){
-    try{
-      const r = await fetch('/.netlify/functions/list_cases?limit=10&format=html');
-      const t = await r.text();
-      document.getElementById('recent').innerHTML = t;
-    }catch(e){
-      document.getElementById('recent').textContent = 'Unable to load recent cases.';
-    }
-  }
-  document.getElementById('triageForm').onsubmit = async (e)=>{
-    e.preventDefault();
-    const btn = document.getElementById('submitBtn');
-    const msg = document.getElementById('submitMsg');
-    const caseId = document.getElementById('caseId').value.trim() || `INC-${Math.floor(Math.random()*9000+1000)}`;
-    const summary = document.getElementById('summary').value.trim();
-    if(!summary){ msg.textContent = 'Summary required.'; return; }
-    btn.disabled = true; msg.textContent = 'Submitting…';
-    try{
-      const r = await fetch('/.netlify/functions/submit_case',{ method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ caseId, summary })});
-      if(!r.ok){ throw new Error(await r.text())}
-      msg.textContent = 'Saved ✓';
-      document.getElementById('caseId').value = '';
-      document.getElementById('summary').value = '';
-      loadRecent();
-    }catch(err){
-      msg.textContent = 'Error saving.';
-    }finally{
-      btn.disabled = false;
-    }
-  };
-
-  loadRecent();
+document.getElementById('triageForm').onsubmit = async (e)=>{
+  e.preventDefault();
+  const summary = document.getElementById('summary').value.trim();
+  const category = document.getElementById('category').value;
+  if(!summary) { document.getElementById('submitMsg').textContent='Summary required.'; return; }
+  const caseId = document.getElementById('caseId').value.trim() || `INC-${Date.now().toString().slice(-6)}`;
+  const payload = { caseId, summary, category };
+}
 </script>
 </body></html>
