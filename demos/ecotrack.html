@@ -4,16 +4,34 @@
   <div class="hero"><div class="logo"></div><div><h1>EcoTrack Pro</h1>
   <div class="small">Impact deltas from simple interventions.</div></div></div>
 
-  <div class="card"><div class="badge">SIMULATED</div>
-    <h2>Snapshot</h2>
-    <div id="metrics" class="small">Loading…</div>
+<div class="card">
+  <div class="badge">SIMULATED</div>
+  <h2>Snapshot — Key sustainability KPIs</h2>
+  <div id="metrics" class="small">Loading…</div>
+
+  <div style="margin-top:12px">
+    <strong>How to read this</strong>
+    <p class="small" style="margin:6px 0">Baseline = previous reporting period. Current = latest measurement. Delta = impact (negative is improvement).</p>
+    <strong>Example actions</strong>
+    <ul class="small">
+      <li>CO₂e delta &lt; -10 → scale the intervention and set new KPI</li>
+      <li>Water use delta positive → investigate major consumers & operational fixes</li>
+      <li>Waste ↑ → pilot composting and supplier packaging changes</li>
+    </ul>
   </div>
 </div>
+
 <script src="/assets/demo.js"></script>
 <script>
 loadJSON('/data/ecotrack.json').then(d=>{
-  document.querySelector('#metrics').innerHTML = d.metrics.map(m=>`<div class="card" style="margin:8px 0">
-  <b>${m.kpi}</b><br>Baseline: ${m.baseline} → Current: ${m.current} (<b>${m.delta}</b>)</div>`).join('');
+  const m = d.metrics || [];
+  document.getElementById('metrics').innerHTML = m.map(x=>`
+    <div class="card" style="margin:8px 0">
+      <b>${x.kpi}</b><br>
+      Baseline: ${x.baseline} → Current: ${x.current} (<b>${x.delta >= 0 ? '+'+x.delta : x.delta}</b>)<br>
+      <small style="opacity:.8">${x.delta < 0 ? 'Good — improvement detected' : 'Warning — investigate'}</small>
+    </div>
+  `).join('');
 });
 </script>
 </body></html>
