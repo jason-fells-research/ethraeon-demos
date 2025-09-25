@@ -1,2 +1,2 @@
-# ETHRAEON Trinity Project
+# ETHRAEON SYSTEMS
 # ethraeon-demos
