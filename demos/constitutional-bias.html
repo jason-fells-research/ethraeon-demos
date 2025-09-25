@@ -19,15 +19,60 @@
 </div>
 <script src="/assets/demo.js"></script>
 <script>
-let data;
-loadJSON('/data/bias.json').then(d=>{
-  data=d;
-  document.querySelector('#bias').innerHTML = d.tests.map(t=>`<div class="card" style="margin:8px 0">
-  <b>Policy:</b> ${t.policy}<br><b>Result:</b> ${t.pass?'PASS':'FAIL'}<br><b>Details:</b> ${t.details}</div>`).join('');
-});
-document.querySelector('#export').onclick=(e)=>{ e.preventDefault();
-  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='bias-audit.json'; a.click(); URL.revokeObjectURL(url);
-};
+(async function(){
+  const res = await loadJSON('/data/bias.json');
+  const tests = res.tests || [];
+  const host = document.querySelector('#bias');
+
+  function badge(pass){
+    const color = pass ? '#1bb36a' : '#e3536b';
+    const label = pass ? 'PASS' : 'FAIL';
+    return `<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:${color}22;border:1px solid ${color}55;color:${color};font-size:12px">${label}</span>`;
+  }
+
+  const rows = tests.map(t => `
+    <tr>
+      <td>${badge(!!t.pass)}</td>
+      <td>${t.policy}</td>
+      <td>${t.details}</td>
+    </tr>
+  `).join('');
+
+  host.innerHTML = `
+    <div style="display:flex;gap:8px;margin-bottom:10px">
+      <button id="copyJson">Copy JSON</button>
+      <button id="exportCsv">Export CSV</button>
+    </div>
+    <div class="small" style="opacity:.8;margin-bottom:6px">Inline audit summary</div>
+    <table style="width:100%;border-collapse:separate;border-spacing:0 6px">
+      <thead><tr><th>Status</th><th>Policy</th><th>Details</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <details style="margin-top:10px"><summary>View raw JSON</summary>
+      <pre style="background:#0b0c10;border:1px solid #1b1e25;border-radius:12px;padding:12px;overflow:auto">${htmlesc(JSON.stringify(res,null,2))}</pre>
+    </details>
+  `;
+
+  function htmlesc(s){return s.replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]))}
+
+  document.getElementById('copyJson').onclick = async ()=>{
+    await navigator.clipboard.writeText(JSON.stringify(res,null,2));
+    alert('JSON copied to clipboard');
+  };
+
+  document.getElementById('exportCsv').onclick = ()=>{
+    const header = ['status','policy','details'];
+    const lines = [header.join(',')].concat(
+      tests.map(t => [t.pass?'PASS':'FAIL', csv(t.policy), csv(t.details)].join(','))
+    );
+    const blob = new Blob([lines.join('\n')], { type:'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement('a'), { href:url, download:'bias_audit.csv' });
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  function csv(s){ return `"${String(s).replace(/"/g,'""')}"`; }
+})();
 </script>
 </body></html>
