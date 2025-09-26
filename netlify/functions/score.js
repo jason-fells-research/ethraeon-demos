@@ -60,7 +60,7 @@ exports.handler = async (event) => {
         score,
         signals: [pick(signalsPool, r2), pick(signalsPool, r3)],
         actions: [pick(actionsPool, r3), pick(actionsPool, r2)],
-        sources: [s1, s2]
+        sources: uniqPick(sourcesPool, r2, r3)
       })
     };
   } catch (e) {

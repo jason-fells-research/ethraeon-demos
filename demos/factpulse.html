@@ -47,7 +47,8 @@ loadJSON('/data/factpulse.json').then(d=>{
     <br>Actions: ${s.actions.join(', ')}
   </div>`).join('');
 });
-el('#scoreBtn').onclick=(e)=>{
+renderRecent();
+  el('#scoreBtn').onclick=(e)=>{
   e.preventDefault();
   const t=el('#q').value.trim();
   if(!t){ el('#result').textContent='Enter some text first.'; return }
@@ -55,7 +56,7 @@ el('#scoreBtn').onclick=(e)=>{
     method:'POST',
     headers:{'content-type':'application/json'},
     body: JSON.stringify({ text:t })
-  }).then(r=>r.json()).then(p=>{
+  }).then(r=>r.json()).then(p=>{ renderRecent(); 
     el('#result').innerHTML = `<b>${t}</b><br>Risk score: ${(p.score*100|0)}%<br>
       Signals: ${p.signals.join(', ')}<br>Actions: ${p.actions.join(', ')}`
   }).catch(()=>{ el('#result').textContent='Scoring service unavailable.'; });

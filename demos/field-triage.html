@@ -48,12 +48,18 @@ loadRecent();
 <script src="/assets/demo.js">
 function scoreSeverity(cat, summary){
   const s = (summary||'').toLowerCase();
-  let pts = 1;
-  if (/threat|harm|violence|assault|self-harm|suicide/.test(s)) pts += 3;
-  if (/data leak|dox|breach|leak/.test(s)) pts += 2;
-  if ((cat||'').toLowerCase().includes('harassment')) pts += 2;
-  if ((cat||'').toLowerCase().includes('safety')) pts += 2;
-  return Math.min(5, pts);
+  let sev = 1;
+  const catBoost = {'Self-harm':5,'Threats':4,'Harassment':3,'Data leak':5,'Violence':5,'Hate':4};
+  if (catBoost[cat]) sev = Math.max(sev, catBoost[cat]);
+  const bumps = [
+    {re:/ssn|social security|pii|data leak|breach|passwords|credentials|dox/i, sev:5},
+    {re:/suicide|self-harm|self harm|kill myself|harm myself/i, sev:5},
+    {re:/bomb|shoot|threat/i, sev:4},
+    {re:/sexual assault|assault|inappropriately touched|harassment/i, sev:4},
+    {re:/leak|exposed data|public repo/i, sev:4}
+  ];
+  bumps.forEach(b=>{ if(b.re.test(s)) sev = Math.max(sev, b.sev); });
+  return Math.min(5, Math.max(1, sev));
 }
 function actionsFor(cat, sev){
   const a=[];
@@ -133,12 +139,18 @@ el('#f').onsubmit = async (e)=>{
 
 function scoreSeverity(cat, summary){
   const s = (summary||'').toLowerCase();
-  let pts = 1;
-  if (/threat|harm|violence|assault|self-harm|suicide/.test(s)) pts += 3;
-  if (/data leak|dox|breach|leak/.test(s)) pts += 2;
-  if ((cat||'').toLowerCase().includes('harassment')) pts += 2;
-  if ((cat||'').toLowerCase().includes('safety')) pts += 2;
-  return Math.min(5, pts);
+  let sev = 1;
+  const catBoost = {'Self-harm':5,'Threats':4,'Harassment':3,'Data leak':5,'Violence':5,'Hate':4};
+  if (catBoost[cat]) sev = Math.max(sev, catBoost[cat]);
+  const bumps = [
+    {re:/ssn|social security|pii|data leak|breach|passwords|credentials|dox/i, sev:5},
+    {re:/suicide|self-harm|self harm|kill myself|harm myself/i, sev:5},
+    {re:/bomb|shoot|threat/i, sev:4},
+    {re:/sexual assault|assault|inappropriately touched|harassment/i, sev:4},
+    {re:/leak|exposed data|public repo/i, sev:4}
+  ];
+  bumps.forEach(b=>{ if(b.re.test(s)) sev = Math.max(sev, b.sev); });
+  return Math.min(5, Math.max(1, sev));
 }
 function actionsFor(cat, sev){
   const a=[];

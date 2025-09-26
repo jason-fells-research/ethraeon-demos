@@ -14,7 +14,59 @@
     <div id="bias" class="small" style="margin-top:12px">Loading…</div>
   </div>
 
-  <script src="/assets/demo.js"></script>
+  <script src="/assets/demo.js">
+// Bias demo script (clean)
+loadJSON('/data/bias.json').then(d=>{
+  const rows = d.tests.map(t=>`<tr>
+    <td style="font-weight:700">${t.pass?'PASS':'FAIL'}</td>
+    <td>${t.policy}</td>
+    <td>${t.details}</td>
+  </tr>`).join('');
+  const pass = d.tests.filter(x=>x.pass).length;
+  const fail = d.tests.length - pass;
+  const summary = `${pass} PASS / ${fail} FAIL`;
+  document.getElementById('bias').innerHTML = `
+    <div class="small"><b>Summary:</b> ${summary}</div>
+    <div style="margin:8px 0">
+      <button id="btnSim">Simulate new run</button>
+      <button id="btnCopyJSON">Copy JSON</button>
+      <button id="btnCopyCSV">Copy CSV</button>
+      <button id="btnViewJSON">View raw JSON</button>
+    </div>
+    <table class="small" style="width:100%">
+      <thead><tr><th>Status</th><th>Policy</th><th>Details</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  function toCSV(arr){ const head=['status','policy','details'];
+    const rows=arr.map(t=>[(t.pass?'PASS':'FAIL'),t.policy,t.details]);
+    return [head.join(','), ...rows.map(r=>r.join(','))].join('\\n');
+  }
+  function copy(txt){ navigator.clipboard.writeText(txt).then(()=>alert('Copied.')); }
+
+  document.getElementById('btnSim').onclick = ()=>{
+    [...document.querySelectorAll('#bias tbody tr')].forEach(tr=>{
+      if(Math.random()<0.33){ const c=tr.children[0]; c.textContent = (c.textContent==='PASS'?'FAIL':'PASS'); }
+    });
+  };
+  document.getElementById('btnCopyJSON').onclick = ()=>copy(JSON.stringify(d.tests,null,2));
+  document.getElementById('btnCopyCSV').onclick  = ()=>copy(toCSV(d.tests));
+  document.getElementById('btnViewJSON').onclick = ()=>{
+    const raw = JSON.stringify(d.tests,null,2);
+    document.getElementById('rawTxt').textContent = raw;
+    document.getElementById('rawDlg').showModal();
+  };
+  document.getElementById('dlJSON').onclick = ()=>{
+    const raw = document.getElementById('rawTxt').textContent;
+    const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([raw],{type:'application/json'})),download:'bias_audit.json'}); a.click();
+  };
+  document.getElementById('dlCSV').onclick = ()=>{
+    const csv = toCSV(d.tests);
+    const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'bias_audit.csv'}); a.click();
+  };
+}).catch(()=>{ document.getElementById('bias').textContent='Unable to load.'; });
+
+</script>
 <script>
 function toCSV(rows){
   const head = ["status","policy","details"];
@@ -47,6 +99,58 @@ document.querySelector('#btnCopyJSON').onclick = ()=>copy(JSON.stringify(d.tests
   document.querySelector('#btnCopyCSV').onclick  = ()=>copy(toCSV(d.tests));
   const sim=document.getElementById('btnSim'); if(sim){ sim.onclick=reshuffle; }
 });
+
+// Bias demo script (clean)
+loadJSON('/data/bias.json').then(d=>{
+  const rows = d.tests.map(t=>`<tr>
+    <td style="font-weight:700">${t.pass?'PASS':'FAIL'}</td>
+    <td>${t.policy}</td>
+    <td>${t.details}</td>
+  </tr>`).join('');
+  const pass = d.tests.filter(x=>x.pass).length;
+  const fail = d.tests.length - pass;
+  const summary = `${pass} PASS / ${fail} FAIL`;
+  document.getElementById('bias').innerHTML = `
+    <div class="small"><b>Summary:</b> ${summary}</div>
+    <div style="margin:8px 0">
+      <button id="btnSim">Simulate new run</button>
+      <button id="btnCopyJSON">Copy JSON</button>
+      <button id="btnCopyCSV">Copy CSV</button>
+      <button id="btnViewJSON">View raw JSON</button>
+    </div>
+    <table class="small" style="width:100%">
+      <thead><tr><th>Status</th><th>Policy</th><th>Details</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+
+  function toCSV(arr){ const head=['status','policy','details'];
+    const rows=arr.map(t=>[(t.pass?'PASS':'FAIL'),t.policy,t.details]);
+    return [head.join(','), ...rows.map(r=>r.join(','))].join('\\n');
+  }
+  function copy(txt){ navigator.clipboard.writeText(txt).then(()=>alert('Copied.')); }
+
+  document.getElementById('btnSim').onclick = ()=>{
+    [...document.querySelectorAll('#bias tbody tr')].forEach(tr=>{
+      if(Math.random()<0.33){ const c=tr.children[0]; c.textContent = (c.textContent==='PASS'?'FAIL':'PASS'); }
+    });
+  };
+  document.getElementById('btnCopyJSON').onclick = ()=>copy(JSON.stringify(d.tests,null,2));
+  document.getElementById('btnCopyCSV').onclick  = ()=>copy(toCSV(d.tests));
+  document.getElementById('btnViewJSON').onclick = ()=>{
+    const raw = JSON.stringify(d.tests,null,2);
+    document.getElementById('rawTxt').textContent = raw;
+    document.getElementById('rawDlg').showModal();
+  };
+  document.getElementById('dlJSON').onclick = ()=>{
+    const raw = document.getElementById('rawTxt').textContent;
+    const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([raw],{type:'application/json'})),download:'bias_audit.json'}); a.click();
+  };
+  document.getElementById('dlCSV').onclick = ()=>{
+    const csv = toCSV(d.tests);
+    const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'bias_audit.csv'}); a.click();
+  };
+}).catch(()=>{ document.getElementById('bias').textContent='Unable to load.'; });
+
 </script>
 </body>
 </html>
