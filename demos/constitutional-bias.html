@@ -45,82 +45,36 @@
   </div>
 
   <script src="/assets/demo.js"></script>
-  <script>
-    let data = { tests: [] };
+<script>
+function toCSV(rows){
+  const head = ["status","policy","details"];
+  const esc = v => `"${String(v).replace(/"/g,'""')}"`;
+  return [head.join(","), ...rows.map(t=>[t.pass?'PASS':'FAIL', t.policy, t.details].map(esc).join(","))].join("\n");
+}
+function copy(txt){ navigator.clipboard.writeText(txt).then(()=>alert('Copied.')); }
 
-    function toCsv(rows) {
-      const headers = ['Status','Policy','Details'];
-      const lines = [headers.join(',')];
-      rows.forEach(r=>{
-        const status = r.pass ? 'PASS' : 'FAIL';
-        // basic CSV escaping for commas/quotes
-        const esc = v => `"${String(v).replace(/"/g,'""')}"`;
-        lines.push([status, esc(r.policy), esc(r.details)].join(','));
-      });
-      return lines.join('\n');
-    }
-
-    function renderTable(d){
-      const rows = d.tests || [];
-      const html = `
-        <table class="small" style="width:100%;border-collapse:collapse">
-          <thead>
-            <tr>
-              <th style="text-align:left;border-bottom:1px solid #2a2e37;padding:6px 4px">Status</th>
-              <th style="text-align:left;border-bottom:1px solid #2a2e37;padding:6px 4px">Policy</th>
-              <th style="text-align:left;border-bottom:1px solid #2a2e37;padding:6px 4px">Details</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map(r=>`
-              <tr>
-                <td style="padding:6px 4px">
-                  <span class="badge" style="background:${r.pass ? '#14351f' : '#3a1c1c'};border-color:${r.pass ? '#1f6f3c' : '#6f2a2a'}">
-                    ${r.pass ? 'PASS' : 'FAIL'}
-                  </span>
-                </td>
-                <td style="padding:6px 4px">${r.policy}</td>
-                <td style="padding:6px 4px;opacity:.9">${r.details}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      `;
-      document.getElementById('tableWrap').innerHTML = html;
-    }
-
-    // Load the simulated checks and wire buttons
-    loadJSON('/data/bias.json').then(d=>{
-      data = d;
-      renderTable(d);
-
-      document.getElementById('copyJsonBtn').onclick = async ()=>{
-        try {
-          await navigator.clipboard.writeText(JSON.stringify(data, null, 2));
-          alert('Audit JSON copied to clipboard.');
-        } catch {
-          alert('Copy failed. (Your browser may block clipboard access.)');
-        }
-      };
-
-      document.getElementById('exportCsvBtn').onclick = ()=>{
-        const csv = toCsv(data.tests || []);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const url  = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url; a.download = 'bias_audit.csv';
-        document.body.appendChild(a); a.click(); a.remove();
-        URL.revokeObjectURL(url);
-      };
-
-      document.getElementById('viewRawJson').onclick = (e)=>{
-        e.preventDefault();
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url  = URL.createObjectURL(blob);
-        window.open(url, '_blank');
-        setTimeout(()=>URL.revokeObjectURL(url), 10000);
-      };
-    });
-  </script>
+loadJSON('/data/bias.json').then(d=>{
+  const pass = d.tests.filter(t=>t.pass).length;
+  const total = d.tests.length;
+  const summary = `Policies met: ${pass}/${total} • ${Math.round(pass/total*100)}% compliance`;
+  document.querySelector('#bias').innerHTML = `
+    <div class="card">
+      <b>Summary:</b> ${summary}<br>
+      <div style="margin-top:8px">
+        <button id="btnCopyJSON">Copy JSON</button>
+        <button id="btnCopyCSV">Copy CSV</button>
+      </div>
+    </div>
+    <div style="margin-top:8px"></div>
+    ${d.tests.map(t=>`
+      <div class="card" style="margin:8px 0">
+        <b>Status:</b> ${t.pass?'PASS':'FAIL'} &nbsp; <b>Policy:</b> ${t.policy}<br>
+        <b>Details:</b> ${t.details}
+      </div>`).join('')}
+  `;
+  document.querySelector('#btnCopyJSON').onclick = ()=>copy(JSON.stringify(d.tests, null, 2));
+  document.querySelector('#btnCopyCSV').onclick  = ()=>copy(toCSV(d.tests));
+});
+</script>
 </body>
 </html>
