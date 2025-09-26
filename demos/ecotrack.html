@@ -11,7 +11,15 @@
 
   <p class="small">Status: Interactive snapshot with suggested actions.</p>
 </div>
-<script src="/assets/demo.js"></script>
+<script src="/assets/demo.js">
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.nextStep');
+  if(!btn) return;
+  const msg = btn.getAttribute('data-action') || 'Next step';
+  alert(msg);
+});
+
+</script>
 <script>
 const playbook = {
   "CO₂e (scope 2)": { explain:"Electricity emissions are down — supplier contracts + scheduling likely helped.",
@@ -28,9 +36,17 @@ loadJSON('/data/ecotrack.json').then(d=>{
       <b>${m.kpi}</b><br>
       Baseline: ${m.baseline} → Current: ${m.current} (<b>${m.delta}</b>)<br>
       <i>${p.explain}</i><br>
-      <button onclick="alert('${p.action.replace(/'/g,'\\'')}')">Suggested next step</button>
+      <button class="nextStep" data-action="${(p.action||'').replace(/'/g,'&apos;')}">Suggested next step</button>
     </div>`;
   }).join('');
 }).catch(()=>{ document.querySelector('#metrics').textContent = 'Unable to load metrics.'; });
+
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.nextStep');
+  if(!btn) return;
+  const msg = btn.getAttribute('data-action') || 'Next step';
+  alert(msg);
+});
+
 </script>
 </body></html>

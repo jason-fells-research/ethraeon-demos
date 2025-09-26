@@ -1,17 +1,26 @@
+function safeParse(body) {
+  try { return JSON.parse(body || "{}"); } catch { return {}; }
+}
+function djb2Hash(str){
+  let h = 5381;
+  for (let i=0;i<str.length;i++) h = ((h<<5) + h) + str.charCodeAt(i);
+  return h >>> 0; // uint
+}
 exports.handler = async (event) => {
   try {
-    if (event.httpMethod !== 'POST') {
-      return { statusCode: 405, body: 'Use POST' };
+    const { text = "" } = safeParse(event.body);
+    // validate
+    if (typeof text !== "string") {
+      return { statusCode: 400, body: JSON.stringify({ error: "text must be a string" }) };
     }
-    const { text = "" } = JSON.parse(event.body || "{}");
+    const t = text.trim().slice(0, 500); // cap length for perf
+    if (!t) return { statusCode: 400, body: JSON.stringify({ error: "no text" }) };
 
-    // Simple deterministic hash → stable-ish variation by input
-    let h = 0;
-    for (let i = 0; i < text.length; i++) h = ((h<<5)-h) + text.charCodeAt(i) | 0;
-    const rand = (seed) => { const x = Math.sin(seed) * 10000; return x - Math.floor(x); };
-    const r1 = rand(h), r2 = rand(h+13), r3 = rand(h+27);
+    // deterministic but varied
+    const h = djb2Hash(t);
+    const rnd = s => { const x = Math.sin(s) * 10000; return x - Math.floor(x); };
+    const r1 = rnd(h), r2 = rnd(h+13), r3 = rnd(h+27);
 
-    // Pick signals/actions from pools
     const signalsPool = [
       "no-source-citation","coordinated-amplification","synthetic-media-indicators",
       "low-source-cred","misleading-caption","out-of-context-clip"
@@ -23,7 +32,6 @@ exports.handler = async (event) => {
     const pick = (arr, r)=> arr[Math.floor(r * arr.length)];
     const score = Math.max(0, Math.min(1, 0.25 + 0.6*r1)); // 25–85%
 
-    // Mock “sources” we can show as credibility anchors (deterministic)
     const sourcesPool = [
       {name:"Reuters", url:"https://www.reuters.com"},
       {name:"AP News", url:"https://apnews.com"},

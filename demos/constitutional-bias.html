@@ -54,11 +54,18 @@ loadJSON('/data/bias.json').then(d=>{
       <tbody>${rows}</tbody>
     </table>
   `;
-  document.querySelector('#btnCopyJSON').onclick = ()=>copy(JSON.stringify(d.tests,null,2));
-  document.querySelector('#btnCopyCSV').onclick  = ()=>copy(toCSV(d.tests));
-  document.querySelector('#btnViewJSON').onclick = ()=>{
-    document.querySelector('#rawTxt').textContent = JSON.stringify(d.tests, null, 2);
-    document.querySelector('#rawDlg').showModal();
+function notifyError(message){ alert(message); }
+  document.querySelector('#btnCopyJSON').onclick = () => {
+    try { copy(JSON.stringify(d.tests,null,2)); } catch { notifyError('Failed to copy JSON.'); }
+  };
+  document.querySelector('#btnCopyCSV').onclick  = () => {
+    try { copy(toCSV(d.tests)); } catch { notifyError('Failed to copy CSV.'); }
+  };
+  document.querySelector('#btnViewJSON').onclick = () => {
+    try {
+      document.querySelector('#rawTxt').textContent = JSON.stringify(d.tests, null, 2);
+      document.querySelector('#rawDlg').showModal();
+    } catch { notifyError('Failed to open dialog.'); }
   };
 });
 </script>

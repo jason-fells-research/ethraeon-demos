@@ -47,7 +47,13 @@ loadRecent();
 el('#f').onsubmit = async (e)=>{
   e.preventDefault();
   el('#msg').textContent = 'Submitting…';
-  const caseId = (el('#caseId').value || `INC-${Math.random().toString(36).slice(2,7).toUpperCase()}`);
+  const caseId = el('#caseId').value || (()=>{ 
+  if (window.crypto && window.crypto.getRandomValues) {
+    const a = new Uint32Array(1); window.crypto.getRandomValues(a);
+    return 'INC-' + a[0].toString(16).toUpperCase().padStart(6,'0').slice(0,6);
+  }
+  return 'INC-' + Math.random().toString(36).slice(2,8).toUpperCase();
+})();
   const payload = { caseId, summary: el('#summary').value, category: el('#category').value };
   try{
     const r = await fetch('/.netlify/functions/submit_case', {
