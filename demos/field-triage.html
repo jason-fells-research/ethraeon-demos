@@ -1,122 +1,131 @@
-<!doctype html><html lang="en">
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Field Triage — Demo</title>
-<link rel="stylesheet" href="../assets/brand.css">
-<body>
+<style>
+  :root{
+    --bg:#0b0e13; --card:#111317; --line:#1b1e25;
+    --text:#e6e9ef; --muted:#9aa3b2; --accent:#16c1b8;
+  }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  .wrap{max-width:900px;margin:40px auto;padding:0 16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:14px 0}
+  .row{display:flex;gap:10px} .row>*{flex:1} .small{font-size:12px;color:var(--muted)}
+  input,button,textarea,select{background:#0f131a;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit}
+  button{cursor:pointer}
+  .badge{display:inline-block;color:#000;padding:2px 10px;border-radius:999px}
+</style>
 <div class="wrap">
-  <h1>Field Triage <span class="badge">Demo</span></h1>
+  <h1>Field Triage <span class="small">demo</span></h1>
 
   <div class="card">
-    <form id="f">
-      <label class="small">Category</label>
-      <select id="category">
-        <option>Harassment</option><option>Threats</option><option>Self-harm</option>
-        <option>Violence</option><option>Hate</option><option>Data leak</option><option>Other</option>
+    <form id="f" class="row" onsubmit="return false">
+      <select id="category" style="max-width:210px">
+        <option>Harassment</option>
+        <option>Threats</option>
+        <option>Self-harm</option>
+        <option>Data leak</option>
+        <option>Hate</option>
+        <option>Violence</option>
+        <option selected>Uncategorized</option>
       </select>
-      <label class="small" style="margin-top:6px">Summary</label>
-      <input id="summary" placeholder="One sentence summary…" required>
-      <div class="small" style="margin-top:6px;opacity:.8">Case ID (blank = auto):</div>
-      <input id="caseId" placeholder="INC-XXXXXX (optional)">
-      <div style="margin-top:8px">
-        <button type="submit">Submit</button>
-        <span id="msg" class="small" style="margin-left:8px"></span>
-      </div>
+      <input id="caseId" placeholder="Case ID (auto)" />
     </form>
+    <textarea id="summary" rows="3" placeholder="One-sentence summary…"></textarea>
+    <div class="row" style="margin-top:10px">
+      <button id="submit">Submit</button>
+      <div id="msg" class="small">Ready.</div>
+    </div>
   </div>
 
   <div class="card">
-    <h2 style="margin:0 0 8px 0">Recent cases</h2>
+    <h2 style="margin:0 0 8px">Recent cases</h2>
     <div id="recent" class="small">Loading…</div>
   </div>
 </div>
 
 <script>
-const el = s=>document.querySelector(s);
+const $=s=>document.querySelector(s);
 
-function sevColor(sev){ if(sev>=4) return '#ff5555'; if(sev>=3) return '#ffcc00'; return '#33cc99'; }
-
+function sevColor(sev){ if(sev>=4) return '#ffcc00'; if(sev>=3) return '#ffeb99'; return '#69e0c4'; } // visible on dark
 function scoreSeverity(cat, summary){
-  let sev = 1, s = (summary||'').toLowerCase();
-  const catBoost = { 'Self-harm':5, 'Threats':4, 'Harassment':3, 'Data leak':5, 'Violence':5, 'Hate':4 };
-  if (catBoost[cat]) sev = Math.max(sev, catBoost[cat]);
-
+  let sev = 1, s = (summary||'').toLowerCase(), c=(cat||'').toLowerCase();
+  // category floors
+  const catBoost = {'self-harm':5,'threats':4,'harassment':3,'data leak':5,'violence':5,'hate':4};
+  if(catBoost[c]) sev = Math.max(sev, catBoost[c]);
+  // keyword bumps
   const bumps = [
     {re:/ssn|social security|pii|data leak|breach|passwords|credentials|dox/i, sev:5},
     {re:/suicide|self-harm|kill myself|harm myself/i, sev:5},
-    {re:/bomb|shoot|threat|kill you|massacre/i, sev:4},
+    {re:/bomb|shoot|threat|kill you|i will find you/i, sev:4},
     {re:/sexual assault|assault|inappropriately touched|harassment/i, sev:4},
-    {re:/leak|exposed data|public repo|pastebin/i, sev:4},
-    {re:/illegal|how to (?:make|do|bypass)|instructions to/i, sev:4}
+    {re:/illegal|how to (?:make|do|bypass)|instructions to/i, sev:4},
+    {re:/leak|exposed data|public repo/i, sev:4}
   ];
   bumps.forEach(b=>{ if(b.re.test(s)) sev = Math.max(sev, b.sev); });
   return Math.min(5, Math.max(1, sev));
 }
-
 function actionsFor(cat, sev){
-  if(sev>=5) return ['Immediate security notify','Freeze access','Legal review'];
-  if(sev>=4) return ['Manager alert','HR/Sec review','Document evidence'];
-  if(sev>=3) return ['Open ticket','Monitor','Offer resources'];
+  if(sev>=5) return ['Immediate escalation','Legal review','Incident ticket'];
+  if(sev>=4) return ['Escalate to safety','Temporarily limit reach','Notify on-call'];
+  if(sev>=3) return ['Internal flag','Contact reporter for details'];
   return ['Acknowledge & monitor'];
 }
-
 function linksFor(cat){
-  const L={};
-  L['Self-harm']=[{t:'Crisis resources (WHO)',u:'https://www.who.int/health-topics/suicide'}];
-  L['Data leak']=[{t:'US-CERT - Handling Breaches',u:'https://www.cisa.gov'}];
-  L['Threats']=[{t:'Workplace Violence Prevention',u:'https://www.osha.gov/workplace-violence'}];
-  return L[cat]||[];
+  const map = {
+    'Self-harm': [{t:'988 Lifeline',u:'https://988lifeline.org'}],
+    'Threats': [{t:'FBI Tips',u:'https://tips.fbi.gov'}],
+    'Data leak': [{t:'CISA—Report',u:'https://www.cisa.gov/report'}],
+    'Harassment': [{t:'EEOC Harassment',u:'https://www.eeoc.gov'}],
+  };
+  return map[cat] || [];
 }
-
-async function loadRecent(){
-  try{
-    const r = await fetch('/.netlify/functions/list_cases?v='+Date.now());
-    const j = await r.json();
-    renderList(j.cases||[]);
-  }catch(e){ renderErr('Unable to load recent: '+(e&&e.message||e)); }
-}
-
-function renderErr(msg){ el('#recent').innerHTML = `<div class='small' style="color:#ff6">${msg}</div>`; }
-
+function renderErr(msg){ $('#recent').innerHTML = `<div class="small" style="color:#f99">${msg}</div>`; }
 function renderList(cases){
-  el('#recent').innerHTML = (cases||[]).map(c=>{
-    const sev = scoreSeverity(c.category||'Other', c.summary||'');
-    const acts = actionsFor(c.category||'Other', sev);
-    const links = linksFor(c.category||'Other');
+  const host = $('#recent');
+  host.innerHTML = (cases||[]).map(c=>{
+    const sev = scoreSeverity(c.category||'Uncategorized', c.summary||'');
+    const acts = actionsFor(c.category||'Uncategorized', sev);
+    const links = linksFor(c.category||'Uncategorized');
     return `<div class="card" style="margin:8px 0">
-      <b>${c.case_id}</b> —
-      <span class="badge" style="background:${sevColor(sev)};color:#000">Severity ${sev}/5</span><br>
-      <i>${c.category||'Uncategorized'}</i> — ${c.summary}<br>
+      <b>${c.case_id}</b> — <span class="badge" style="background:${sevColor(sev)}">Severity ${sev}/5</span><br>
+      <i>${c.category||'Uncategorized'}</i> — ${escapeHtml(c.summary)}<br>
       <b>Recommended:</b> ${acts.join(' · ')}<br>
       ${(links.length?('<b>Refs:</b> '+links.map(x=>`<a target="_blank" rel="noopener" href="${x.u}">${x.t}</a>`).join(' · ')):'')}
       <div class="small" style="opacity:.8">Logged: ${new Date(c.created_at).toLocaleString()}</div>
     </div>`;
   }).join('') || '<div class="small">No recent cases.</div>';
 }
+function escapeHtml(s){return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]))}
+
+async function loadRecent(){
+  try{
+    const r = await fetch('/.netlify/functions/list_cases?v='+Date.now());
+    if(!r.ok) throw new Error('list failed');
+    const {cases=[]} = await r.json();
+    renderList(cases);
+  }catch(e){ renderErr('Unable to load recent: '+(e?.message||e)); }
+}
+
+$('#submit').onclick = async ()=>{
+  const cat = $('#category').value.trim();
+  const id  = $('#caseId').value.trim() || (()=>{
+    if(window.crypto?.getRandomValues){const a=new Uint32Array(1);crypto.getRandomValues(a);return 'INC-'+a[0].toString(16).toUpperCase().padStart(6,'0').slice(0,6);}
+    return 'INC-'+Math.random().toString(36).slice(2,8).toUpperCase();
+  })();
+  const summary = $('#summary').value.trim();
+  if(!summary){ $('#msg').textContent = 'Please add a summary.'; return; }
+  $('#msg').textContent = 'Submitting…';
+  try{
+    const r = await fetch('/.netlify/functions/submit_case',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({caseId:id,category:cat,summary})});
+    if(!r.ok) throw 0;
+    $('#summary').value=''; $('#caseId').value='';
+    $('#msg').textContent = 'Saved.';
+    loadRecent();
+  }catch{ $('#msg').textContent = 'Error saving.'; }
+};
 
 loadRecent();
-
-el('#f').onsubmit = async (e)=>{
-  e.preventDefault();
-  el('#msg').textContent = 'Submitting…';
-  const caseId = el('#caseId').value || (()=>{
-    if (window.crypto && window.crypto.getRandomValues) {
-      const a = new Uint32Array(1); window.crypto.getRandomValues(a);
-      return 'INC-' + a[0].toString(16).toUpperCase().padStart(6,'0').slice(0,6);
-    }
-    return 'INC-' + Math.random().toString(36).slice(2,8).toUpperCase();
-  })();
-  const payload = { caseId, summary: el('#summary').value, category: el('#category').value };
-  try{
-    const r = await fetch('/.netlify/functions/submit_case', {
-      method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(payload)
-    });
-    if(!r.ok) throw new Error(await r.text());
-    el('#msg').textContent = 'Saved.';
-    el('#summary').value = ''; el('#caseId').value = '';
-    await loadRecent();
-  }catch(err){
-    el('#msg').textContent = 'Error saving.';
-  }
-};
 </script>
-</body></html>
+</html>
