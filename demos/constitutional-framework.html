@@ -1,49 +1,63 @@
-<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Constitutional AI Framework — ETHRAEON</title><link rel="stylesheet" href="/assets/brand.css">
-<body><div class="container">
-  <div class="hero"><div class="logo"></div><div>
-    <h1>Constitutional AI Framework</h1>
-    <div class="small">Governance-first architecture that turns policies into checks, guardrails, and audits you can deploy.</div>
-  </div></div>
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ethraeon — Constitutional AI Framework (Demo)</title>
+<style>
+  :root{--bg:#0b0e13;--card:#111317;--line:#1b1e25;--text:#e6e9ef;--muted:#9aa3b2;--accent:#16c1b8}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  .wrap{max-width:900px;margin:40px auto;padding:0 16px}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
+  h1,h2{margin:0 0 10px} .small{font-size:12px;color:var(--muted)}
+  ul{margin:0 0 0 18px;padding:0} li{margin:6px 0}
+  a{color:var(--accent)}
+</style>
+<div class="wrap">
+  <h1>Ethraeon — Constitutional AI Framework</h1>
+  <p class="small">Practical governance you can ship. Start with one workflow, bake in guardrails, and export audits on demand.</p>
 
-  <div class="card">
-    <h2>Why it exists</h2>
-    <ul class="small">
-      <li>Enterprises want AI value, but need <b>predictable behavior</b>, <b>risk control</b>, and <b>auditability</b>.</li>
-      <li>Policies live in documents; production systems need <b>executable checks</b> and <b>evidence trails</b>.</li>
-    </ul>
+  <div class="grid">
+    <div class="card">
+      <h2>Core loop</h2>
+      <ul class="small">
+        <li><b>Observe:</b> instrument a decision (post, case, transaction).</li>
+        <li><b>Check:</b> run policy tests (bias, risk, safety, compliance).</li>
+        <li><b>Act:</b> route to humans/systems (ticket, escalation, notify).</li>
+        <li><b>Assure:</b> log outcomes and export system cards/audits.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>What the demos show</h2>
+      <ul class="small">
+        <li><b>FactPulse:</b> risk signals + suggested actions (with sources).</li>
+        <li><b>Field Triage:</b> classify, score severity, recommend next steps.</li>
+        <li><b>Bias Dashboard:</b> pass/fail checks with exportable audit bundle.</li>
+        <li><b>EcoTrack:</b> deltas → one-click operational playbook.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Deployment model</h2>
+      <ul class="small">
+        <li><b>Start:</b> pick a single workflow and light up checks + exports.</li>
+        <li><b>Scale:</b> codify more policies; wire actions to your tools (Jira/ServiceNow/Slack/Email).</li>
+        <li><b>Assure:</b> schedule bias reports & system cards; keep auditors and leadership in the loop.</li>
+      </ul>
+      <div class="small">References:
+        <a target="_blank" rel="noopener" href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI RMF</a> ·
+        <a target="_blank" rel="noopener" href="https://oecd.ai/en/ai-principles">OECD AI principles</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Status</h2>
+      <ul class="small">
+        <li>Interactive demo; data sources are simulated unless noted.</li>
+        <li>Integrations (ticketing/ChatOps/data) are straightforward add-ons.</li>
+      </ul>
+    </div>
   </div>
-
-  <div class="card">
-    <h2>The Core Loop</h2>
-    <ol class="small">
-      <li><b>Inputs</b>: prompts, data, models, and user context.</li>
-      <li><b>Policies → Checks</b>: translate policy into testable constraints (safety, bias, privacy, brand).</li>
-      <li><b>Runtime Controls</b>: refuse/repair/route with human-in-the-loop.</li>
-      <li><b>Telemetry & Audit</b>: structured logs, system cards, exportable artifacts.</li>
-      <li><b>Review & Improve</b>: close the loop with drift monitoring and retraining gates.</li>
-    </ol>
-  </div>
-
-  <div class="card">
-    <h2>Where the demos fit</h2>
-    <ul class="small">
-      <li><b>FactPulse Pro</b> → Runtime signals + actions.</li>
-      <li><b>Bias Dashboard</b> → Policy checks & audit bundles.</li>
-      <li><b>Field Triage</b> → Intake → classify → governed actions.</li>
-      <li><b>EcoTrack Pro</b> → Outcomes tracking with operational playbooks.</li>
-    </ul>
-  </div>
-
-  <div class="card">
-    <h2>Deployment model</h2>
-    <ul class="small">
-      <li><b>Start</b>: instrument one workflow; enable checks and exportable audits.</li>
-      <li><b>Scale</b>: add policies as code; route events to your ticketing/ChatOps.</li>
-      <li><b>Assure</b>: generate system cards, bias reports, and compliance exports on schedule.</li>
-    </ul>
-    <div class="small">References: <a target="_blank" rel="noopener" href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI RMF</a> · <a target="_blank" rel="noopener" href="https://oecd.ai/en/ai-principles">OECD AI principles</a></div>
-  </div>
-
-  <p class="small" style="opacity:.75">Status: interactive demo; integrations (ticketing/ChatOps/data) are straightforward add-ons.</p>
-</div></body></html>
+</div>
+</html>
