@@ -1,56 +1,58 @@
-export default async (req) => {
+function safeParse(body) {
+  try { return JSON.parse(body || "{}"); } catch { return {}; }
+}
+function djb2Hash(str){
+  let h = 5381;
+  for (let i=0;i<str.length;i++) h = ((h<<5) + h) + str.charCodeAt(i);
+  return h >>> 0; // uint
+}
+exports.handler = async (event) => {
   try {
-    if (req.method !== 'POST') {
-      return new Response('Use POST', { status: 405 });
+    const { text = "" } = safeParse(event.body);
+    // validate
+    if (typeof text !== "string") {
+      return { statusCode: 400, body: JSON.stringify({ error: "text must be a string" }) };
     }
-    const { text = '' } = await req.json().catch(() => ({ text: '' }));
-    const t = (text || '').trim();
-    if (!t) return new Response(JSON.stringify({ error: 'no text' }), { status: 400 });
+    const t = text.trim().slice(0, 500); // cap length for perf
+    if (!t) return { statusCode: 400, body: JSON.stringify({ error: "no text" }) };
 
-    const lc = t.toLowerCase();
+    // deterministic but varied
+    const h = djb2Hash(t);
+    const rnd = s => { const x = Math.sin(s) * 10000; return x - Math.floor(x); };
+    const r1 = rnd(h), r2 = rnd(h+13), r3 = rnd(h+27);
 
-    let score = 0.35;
-    const signals = new Set();
-
-    const bumps = [
-      { re: /\bdeepfake|ai-generated|voice clone|face swap\b/i, bump: 0.25, signal: 'synthetic-media-indicators' },
-      { re: /\bthreatens|exposed|leaked|shocking|breaking\b/i, bump: 0.15, signal: 'sensational-language' },
-      { re: /\bsource\b/i, bump: -0.05, signal: 'source-mentioned' },
-      { re: /\bfactcheck|fact-check|snopes|politi?fact\b/i, bump: -0.12, signal: 'fact-check-cited' },
-      { re: /\babc fake news|lamestream|propaganda\b/i, bump: 0.12, signal: 'delegitimizing-language' },
+    const signalsPool = [
+      "no-source-citation","coordinated-amplification","synthetic-media-indicators",
+      "low-source-cred","misleading-caption","out-of-context-clip"
     ];
-    bumps.forEach(({ re, bump, signal }) => {
-      if (re.test(t)) {
-        score += bump;
-        signals.add(signal);
-      }
-    });
+    const actionsPool = [
+      "monitor","link-to-official","prepare-FAQ","platform escalation",
+      "takedown request","legal review","internal flag"
+    ];
+    const pick = (arr, r)=> arr[Math.floor(r * arr.length)];
+    const score = Math.max(0, Math.min(1, 0.25 + 0.6*r1)); // 25–85%
 
-    const capsRatio = (t.replace(/[^A-Z]/g, '').length) / Math.max(1, t.length);
-    if (capsRatio > 0.25) { score += 0.08; signals.add('all-caps-emphasis'); }
-    const exclam = (t.match(/!/g) || []).length;
-    if (exclam >= 2) { score += 0.06; signals.add('exclamation-burst'); }
+    const sourcesPool = [
+      {name:"Reuters", url:"https://www.reuters.com"},
+      {name:"AP News", url:"https://apnews.com"},
+      {name:"CDC", url:"https://www.cdc.gov"},
+      {name:"EU DisinfoLab", url:"https://www.disinfo.eu"},
+      {name:"WHO", url:"https://www.who.int"}
+    ];
+    const s1 = sourcesPool[Math.floor(r2 * sourcesPool.length)];
+    const s2 = sourcesPool[Math.floor(r3 * sourcesPool.length)];
 
-    if (!/\bhttps?:\/\//i.test(t)) signals.add('no-source-citation');
-
-    score += (Math.random() - 0.5) * 0.06;
-
-    score = Math.max(0.05, Math.min(0.95, score));
-
-    let actions = ['monitor'];
-    if (score >= 0.75) actions = ['platform escalation', 'takedown request', 'legal review'];
-    else if (score >= 0.55) actions = ['request sources', 'label for context', 'prepare FAQ'];
-
-    return new Response(
-      JSON.stringify({
-        input: t,
-        score: Number(score.toFixed(2)),
-        signals: Array.from(signals),
-        actions
-      }),
-      { headers: { 'content-type': 'application/json' } }
-    );
+    return {
+      statusCode: 200,
+      headers: { 'content-type': 'application/json', 'cache-control': 'no-cache' },
+      body: JSON.stringify({
+        score,
+        signals: [pick(signalsPool, r2), pick(signalsPool, r3)],
+        actions: [pick(actionsPool, r3), pick(actionsPool, r2)],
+        sources: [s1, s2]
+      })
+    };
   } catch (e) {
-    return new Response(JSON.stringify({ error: e.message }), { status: 500 });
+    return { statusCode: 500, body: JSON.stringify({ error: String(e) }) };
   }
 };

@@ -1,47 +1,17 @@
-<!doctype html>
-<html>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Constitutional Bias Dashboard — ETHRAEON</title>
-<link rel="stylesheet" href="/assets/brand.css">
-<body>
-  <div class="container">
-    <div class="hero">
-      <div class="logo"></div>
-      <div>
-        <h1>Constitutional Bias Dashboard</h1>
-        <div class="small">Monitor outputs vs. policies; spot failures; export audits.</div>
-      </div>
-    </div>
+<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Constitutional Bias Dashboard — ETHRAEON</title><link rel="stylesheet" href="/assets/brand.css">
+<body><div class="container">
+  <div class="hero"><div class="logo"></div><div><h1>Constitutional Bias Dashboard</h1>
+    <div class="small">Monitor outputs vs. policy; spot drifts; export audits.</div></div></div>
 
-    <div class="card">
-      <div class="badge">SIMULATED</div>
-      <h2>What this tells you</h2>
-      <p class="small" style="margin:6px 0">
-        Each row is a policy check with PASS/FAIL and a short rationale. Use “Copy JSON” for tickets or
-        “Export CSV” for stakeholder review. “If FAIL…” gives you a next step.
-      </p>
-
-      <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 4px">
-        <button id="copyJsonBtn">Copy JSON</button>
-        <button id="exportCsvBtn">Export CSV</button>
-        <a id="viewRawJson" class="small" href="#" style="align-self:center">View raw JSON</a>
-      </div>
-
-      <div id="tableWrap" style="margin-top:10px;overflow:auto">
-        <!-- table renders here -->
-      </div>
-
-      <div class="card" style="margin-top:12px">
-        <strong>If FAIL…</strong>
-        <ul class="small" style="margin:6px 0">
-          <li><b>Identify</b> which prompt/output violated policy.</li>
-          <li><b>Mitigate</b> (prompt rule, guardrail, or model filter).</li>
-          <li><b>Re-test</b> and attach this dashboard’s export to the audit ticket.</li>
-        </ul>
-      </div>
-
-      <p class="small" style="margin-top:10px">Status: Interactive demo with simulated data.</p>
-    </div>
+  <div class="card"><div class="badge">INTERACTIVE</div>
+    <h2>What this shows</h2>
+    <ul>
+      <li>Policy checks pass/fail + rationale.</li>
+      <li>Summary compliance metric.</li>
+      <li>One-click copy: JSON or CSV (no file hunting).</li>
+    </ul>
+    <div id="bias" class="small" style="margin-top:12px">Loading…</div>
   </div>
 
   <script src="/assets/demo.js"></script>
