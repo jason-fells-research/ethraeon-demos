@@ -35,7 +35,7 @@
 <div id="recent" class="small">Loading…</div>
 <script>
 async function loadRecent(){
-  const r = await fetch('/.netlify/functions/list_cases');
+  const r = await fetch('/.netlify/functions/list_cases?v=' + Date.now());
   const d = await r.json().catch(()=>({cases:[]}));
   const html = (d.cases||[]).map(c=>`<div class="card" style="margin:8px 0">
     <b>${c.case_id}</b> — ${c.summary}<br><span class="muted">${new Date(c.created_at).toLocaleString()}</span>
@@ -86,10 +86,11 @@ function linksFor(cat){
   return L;
 }
 async function loadRecent(){
-  const r = await fetch('/.netlify/functions/list_cases');
+  const r = await fetch('/.netlify/functions/list_cases?v=' + Date.now());
   const d = await r.json();
   renderList(d.cases||[]);
 }
+function renderErr(msg){  const host=document.querySelector('#recent');  host.innerHTML = `<div class='small' style='color:#ff6'>${msg}</div>`;}
 function renderList(cases){
   const host = document.querySelector('#recent');
   host.innerHTML = (cases||[]).map(c=>{
@@ -111,7 +112,7 @@ function renderList(cases){
 function el(s){return document.querySelector(s)}
 async function loadRecent(){
   try {
-    const r = await fetch('/.netlify/functions/list_cases');
+    const r = await fetch('/.netlify/functions/list_cases?v=' + Date.now());
     const d = await r.json();
     el('#recent').innerHTML = (d.cases||[]).map(c=>`
       <div class="card" style="margin:8px 0">
@@ -186,10 +187,11 @@ function linksFor(cat){
   return L;
 }
 async function loadRecent(){
-  const r = await fetch('/.netlify/functions/list_cases');
+  const r = await fetch('/.netlify/functions/list_cases?v=' + Date.now());
   const d = await r.json();
   renderList(d.cases||[]);
 }
+function renderErr(msg){  const host=document.querySelector('#recent');  host.innerHTML = `<div class='small' style='color:#ff6'>${msg}</div>`;}
 function renderList(cases){
   const host = document.querySelector('#recent');
   host.innerHTML = (cases||[]).map(c=>{
