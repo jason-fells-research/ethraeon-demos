@@ -38,14 +38,8 @@ exports.handler = async (event) => {
     const rnd = s => { const x = Math.sin(s) * 10000; return x - Math.floor(x); };
     const r1 = rnd(h), r2 = rnd(h+13), r3 = rnd(h+27);
 
-    const signalsPool = [
-      "no-source-citation","coordinated-amplification","synthetic-media-indicators",
-      "low-source-cred","misleading-caption","out-of-context-clip"
-    ];
-    const actionsPool = [
-      "monitor","link-to-official","prepare-FAQ","platform escalation",
-      "takedown request","legal review","internal flag"
-    ];
+    const signalsPool = ['no-source-citation','low-source-cred','coordinated-amplification','misleading-caption','out-of-context-clip','synthetic-media-indicators','delegitimizing-language'];
+    const actionsPool = ['monitor','prepare-FAQ','link-to-official','internal flag','legal review','platform escalation','takedown request'];
     const pick = (arr, r)=> arr[Math.floor(r * arr.length)];
     const score = Math.max(0, Math.min(1, 0.25 + 0.6*r1)); // 25–85%
 

@@ -26,6 +26,20 @@
 </script>
 <script>
 let samples=[];
+async function renderRecent(){
+  try{
+    const r = await fetch('/.netlify/functions/list_facts');
+    if(!r.ok) throw 0;
+    const d = await r.json();
+    const arr = (d.facts||[]).map(f=>({text:f.text, score:f.score, signals:f.signals, actions:f.actions}));
+    const merged = [...arr, ...samples].slice(0,12);
+    el('#stream').innerHTML = merged.map(s=>`<div class="card" style="margin:8px 0">
+      <b>${s.text}</b><br>Risk score: ${(s.score*100|0)}%<br>
+      Signals: ${[...new Set(s.signals||[])].join(', ')}<br>
+      Actions: ${[...new Set(s.actions||[])].join(', ')}
+    </div>`).join('');
+  }catch{ /* fall back to samples below */ }
+}
 loadJSON('/data/factpulse.json').then(d=>{
   samples=d.queries;
   el('#stream').innerHTML = samples.map(s=>`<div class="card" style="margin:8px 0">
