@@ -2,46 +2,64 @@
 <title>Field Triage Dashboard — ETHRAEON</title><link rel="stylesheet" href="/assets/brand.css">
 <body><div class="container">
   <div class="hero"><div class="logo"></div><div><h1>Field Triage Dashboard</h1>
-  <div class="small">Intake → classify → safe actions. Governance baked in.</div></div></div>
+    <div class="small">Intake → classify → safe actions. Governance baked in.</div></div></div>
 
-  <div class="card">
-  <div class="badge">LIVE</div>
-  <h2>Open a case (20 seconds)</h2>
-  <form id="triageForm">
-  <label class="small" for="category">Category</label>
-  <select id="category" style="width:100%;margin:4px 0 8px">
-    <option>Safety</option>
-    <option>Data leak</option>
-    <option>Harassment</option>
-    <option>Brand risk</option>
-    <option>Other</option>
-  </select>
+  <div class="card"><div class="badge">LIVE</div>
+    <h2>Log a case (10 seconds)</h2>
+    <div class="small">Pick a category and write one sentence. Leave Case ID blank to auto-generate.</div>
+    <form id="f">
+      <label>Category</label><br/>
+      <select id="category" required>
+        <option value="Harassment">Harassment</option>
+        <option value="Self-harm">Self-harm</option>
+        <option value="Data leak">Data leak</option>
+        <option value="Brand safety">Brand safety</option>
+      </select><br/><br/>
+      <label>Case ID (optional)</label><br/>
+      <input id="caseId" placeholder="Leave blank to auto-generate"><br/><br/>
+      <label>Summary</label><br/>
+      <input id="summary" placeholder="One sentence" required style="width:100%"><br/><br/>
+      <button id="submitBtn">Submit</button>
+      <span id="msg" class="small" style="margin-left:8px"></span>
+    </form>
+  </div>
 
-  <label class="small" for="summary">Summary (one sentence)</label>
-  <textarea id="summary" rows="3" style="width:100%;margin:4px 0 12px" placeholder="Brief summary of the incident"></textarea>
+  <h2 style="margin-top:16px">Recent cases (live)</h2>
+  <div id="recent" class="small">Loading…</div>
 
-  <label class="small" for="caseId">Case ID (optional)</label>
-  <input id="caseId" style="width:100%;margin:4px 0 8px" placeholder="Leave blank to auto-create">
-
-  <button id="submitBtn">Submit</button>
-  <span id="submitMsg" class="small" style="margin-left:8px"></span>
-</form>
+  <p class="small">Status: Writes to Neon DB and lists latest 25.</p>
 </div>
-
-<div class="card">
-  <h2>Recent cases</h2>
-  <div id="recent">Loading…</div>
-</div>
-
-<script src="/assets/demo.js"></script>
 <script>
-document.getElementById('triageForm').onsubmit = async (e)=>{
-  e.preventDefault();
-  const summary = document.getElementById('summary').value.trim();
-  const category = document.getElementById('category').value;
-  if(!summary) { document.getElementById('submitMsg').textContent='Summary required.'; return; }
-  const caseId = document.getElementById('caseId').value.trim() || `INC-${Date.now().toString().slice(-6)}`;
-  const payload = { caseId, summary, category };
+function el(s){return document.querySelector(s)}
+async function loadRecent(){
+  try {
+    const r = await fetch('/.netlify/functions/list_cases');
+    const d = await r.json();
+    el('#recent').innerHTML = (d.cases||[]).map(c=>`
+      <div class="card" style="margin:8px 0">
+        <b>${c.case_id}</b> — <i>${c.category||'—'}</i><br>${c.summary}<br>
+        <span class="muted">${new Date(c.created_at).toLocaleString()}</span>
+      </div>`).join('') || 'No cases yet.';
+  } catch { el('#recent').textContent = 'Unable to load cases.'; }
 }
+loadRecent();
+
+el('#f').onsubmit = async (e)=>{
+  e.preventDefault();
+  el('#msg').textContent = 'Submitting…';
+  const caseId = (el('#caseId').value || `INC-${Math.random().toString(36).slice(2,7).toUpperCase()}`);
+  const payload = { caseId, summary: el('#summary').value, category: el('#category').value };
+  try{
+    const r = await fetch('/.netlify/functions/submit_case', {
+      method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(payload)
+    });
+    if(!r.ok){ throw new Error(await r.text()) }
+    el('#msg').textContent = 'Saved.';
+    el('#summary').value = ''; el('#caseId').value = '';
+    await loadRecent();
+  }catch(err){
+    el('#msg').textContent = 'Error saving.';
+  }
+};
 </script>
 </body></html>
