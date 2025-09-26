@@ -1,5 +1,22 @@
 function safeParse(body) {
-  try { return JSON.parse(body || "{}"); } catch { return {}; }
+  try { return JSON.parse(body || "{}"); } catch { function uniqPick(pool, rA, rB){
+  const a = pool[Math.floor(rA*pool.length)];
+  let b = pool[Math.floor(rB*pool.length)];
+  if(b===a) b = pool[(Math.floor(rB*pool.length)+1)%pool.length];
+  return [a,b];
+}
+function srcPick(rA,rB){
+  const pool = [
+    {name:"AP News", url:"https://apnews.com"},
+    {name:"BBC Reality Check", url:"https://www.bbc.co.uk/news/reality_check"},
+    {name:"Snopes", url:"https://www.snopes.com"},
+    {name:"PolitiFact", url:"https://www.politifact.com"},
+    {name:"EU DisinfoLab", url:"https://www.disinfo.eu"}
+  ];
+  let [s1,s2] = uniqPick(pool, rA, rB);
+  return [s1,s2];
+}
+return {}; }
 }
 function djb2Hash(str){
   let h = 5381;

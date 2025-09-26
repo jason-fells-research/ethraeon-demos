@@ -17,3 +17,5 @@ border:1px solid #2a2f38;text-decoration:none;color:var(--text)}
 .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#1b1e25, var(--accent))}
 ul{margin:8px 0 0 18px}
 pre{background:#0e1014;border:1px solid #1b1e25;padding:12px;border-radius:12px;overflow:auto}
+a{color:var(--accent);}
+a:hover{text-decoration:underline}

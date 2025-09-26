@@ -26,7 +26,7 @@ loadJSON('/data/ecotrack.json').then(d=>{
       <b>${m.kpi}</b><br>
       Baseline: ${m.baseline} → Current: ${m.current} (<b>${m.delta}</b>)<br>
       <i>${p.explain}</i><br>
-      <button onclick="alert('${p.action.replace(/'/g,'\\'')}')">Suggested next step</button>
+      <button onclick="alert('${p.action.replace(/'/g,'\\'')}')">Suggested next step</button> <span class='small'>Owner: Ops (sim)</span>
     </div>`;
   }).join('');
 });
@@ -48,7 +48,7 @@ loadJSON('/data/ecotrack.json').then(d=>{
       <b>${m.kpi}</b><br>
       Baseline: ${m.baseline} → Current: ${m.current} (<b>${m.delta}</b>)<br>
       <i>${p.explain}</i><br>
-      <button class="nextStep" data-action="${(p.action||'').replace(/'/g,'&apos;')}">Suggested next step</button>
+      <button class="nextStep" data-action="${(p.action||'').replace(/'/g,'&apos;')}">Suggested next step</button> <span class='small'>Owner: Ops (sim)</span>
     </div>`;
   }).join('');
 }).catch(()=>{ document.querySelector('#metrics').textContent = 'Unable to load metrics.'; });

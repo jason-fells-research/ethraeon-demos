@@ -42,7 +42,8 @@ loadJSON('/data/bias.json').then(d=>{
         <b>Details:</b> ${t.details}
       </div>`).join('')}
   `;
-  document.querySelector('#btnCopyJSON').onclick = ()=>copy(JSON.stringify(d.tests, null, 2));
+  function toCSV(arr){ const head=['status','policy','details']; const rows=arr.map(t=>[(t.pass?'PASS':'FAIL'),t.policy,t.details]); return [head.join(','), *[r.join(',') for r in rows]].join('\n'); }
+document.querySelector('#btnCopyJSON').onclick = ()=>copy(JSON.stringify(d.tests, null, 2));
   document.querySelector('#btnCopyCSV').onclick  = ()=>copy(toCSV(d.tests));
   const sim=document.getElementById('btnSim'); if(sim){ sim.onclick=reshuffle; }
 });
