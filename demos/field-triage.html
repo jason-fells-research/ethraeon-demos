@@ -1,104 +1,85 @@
-<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Field Triage Dashboard — ETHRAEON</title><link rel="stylesheet" href="/assets/brand.css">
-<body><div class="container">
-  <div class="hero"><div class="logo"></div><div><h1>Field Triage Dashboard</h1>
-    <div class="small">Intake → classify → safe actions. Governance baked in.</div></div></div>
+<!doctype html><html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../assets/brand.css">
+<title>Field Triage Dashboard</title>
+<body>
+<div class="wrap">
+  <h1><span class="dot"></span> Field Triage Dashboard</h1>
+  <p class="sub">Intake → classify → governed actions. Governance baked in.</p>
 
-  <div class="card"><div class="badge">LIVE</div>
+  <div class="card">
+    <span class="badge">LIVE</span>
     <h2>Log a case (10 seconds)</h2>
-    <div class="small">Pick a category and write one sentence. Leave Case ID blank to auto-generate.</div>
     <form id="f">
-      <label>Category</label><br/>
-      <select id="category" required>
-        <option value="Harassment">Harassment</option>
-        <option value="Self-harm">Self-harm</option>
-        <option value="Data leak">Data leak</option>
-        <option value="Brand safety">Brand safety</option>
-      </select><br/><br/>
-      <label>Case ID (optional)</label><br/>
-      <input id="caseId" placeholder="Leave blank to auto-generate"><br/><br/>
-      <label>Summary</label><br/>
-      <input id="summary" placeholder="One sentence" required style="width:100%"><br/><br/>
-      <button id="submitBtn">Submit</button>
+      <label>Category</label>
+      <select id="category">
+        <option>Harassment</option>
+        <option>Threats</option>
+        <option>Hate</option>
+        <option>Self-harm</option>
+        <option>Data leak</option>
+        <option>Violence</option>
+        <option>Other</option>
+      </select>
+      <label>Case ID (optional)</label>
+      <input id="caseId" placeholder="Leave blank to auto-generate">
+      <label>Summary</label>
+      <input id="summary" placeholder="One sentence">
+      <button type="submit">Submit</button>
       <span id="msg" class="small" style="margin-left:8px"></span>
     </form>
   </div>
 
-  <h2 style="margin-top:16px">Recent cases (live)</h2>
-  <div id="recent" class="small">Loading…</div>
-
-  <p class="small">Status: Writes to Neon DB and lists latest 25.</p>
+  <div class="card">
+    <h2>Recent cases (live)</h2>
+    <div id="recent" class="small">Loading…</div>
+    <div class="small" style="opacity:.75;margin-top:6px">Status: Writes to Neon DB and lists latest 25.</div>
+  </div>
 </div>
 
-<div class="card">
-<h2 style="margin-top:16px">Recent cases (live)</h2>
-<div id="recent" class="small">Loading…</div>
 <script>
-async function loadRecent(){
-  const r = await fetch('/.netlify/functions/list_cases?v=' + Date.now());
-  const d = await r.json().catch(()=>({cases:[]}));
-  const html = (d.cases||[]).map(c=>`<div class="card" style="margin:8px 0">
-    <b>${c.case_id}</b> — ${c.summary}<br><span class="muted">${new Date(c.created_at).toLocaleString()}</span>
-  </div>`).join('') || 'No cases yet.';
-  document.querySelector('#recent').innerHTML = html;
-}
-loadRecent();
-</div>
+const el = s=>document.querySelector(s);
 
-<script src="/assets/demo.js">
-function sevColor(sev){
-  if(sev>=4) return '#ff5555'; if(sev>=3) return '#ffcc00'; return '#33cc99';
-}
+// severity model (weighted)
+function sevColor(sev){ if(sev>=4) return '#ff5555'; if(sev>=3) return '#ffcc00'; return '#33cc99'; }
 function scoreSeverity(cat, summary){
-  const s = (summary||'').toLowerCase();
-  let sev = 1;
-  const catBoost = {'Self-harm':5,'Threats':4,'Harassment':3,'Data leak':5,'Violence':5,'Hate':4,'Policy/Compliance':4};
+  let sev = 1, s = (summary||'').toLowerCase();
+  const catBoost = {'Self-harm':5,'Threats':4,'Harassment':3,'Data leak':5,'Violence':5,'Hate':4};
   if (catBoost[cat]) sev = Math.max(sev, catBoost[cat]);
-
   const bumps = [
-    {re:/ssn|social security|pii|data leak|breach|passwords|credentials|dox/i, sev:5},
-    {re:/suicide|self-harm|self harm|kill myself|harm myself/i, sev:5},
+    {re:/ssn|social security|pii|data leak|breach|password|credential|dox/i, sev:5},
+    {re:/suicide|self[- ]?harm|kill myself|harm myself/i, sev:5},
     {re:/bomb|shoot|threat/i, sev:4},
     {re:/sexual assault|assault|inappropriately touched|harassment/i, sev:4},
-    {re:/leak|exposed data|public repo/i, sev:4},
-    {re:/illegal|how to (?:make|do|bypass)|instructions to/i, sev:4}  // new: illegal instructions
-  ];
-  bumps.forEach(b=>{ if(b.re.test(s)) sev = Math.max(sev, b.sev); });
-  return Math.min(5, Math.max(1, sev));
-}
+    {re:/illegal|how to (?:make|do|bypass)|instructions to/i, sev:4}
   ];
   bumps.forEach(b=>{ if(b.re.test(s)) sev = Math.max(sev, b.sev); });
   return Math.min(5, Math.max(1, sev));
 }
 function actionsFor(cat, sev){
-  const a=[];
-  if (sev>=4){ a.push('Escalate to duty officer'); a.push('Pause affected workflows'); }
-  if (/harass|assault/i.test(cat||'')){ a.push('Open HR case'); a.push('Offer wellbeing resources'); }
-  if (/data|leak|breach/i.test(cat||'')){ a.push('Open legal ticket'); a.push('Notify security lead'); }
-  if (a.length===0) a.push('Acknowledge & monitor');
-  return a;
+  if(sev>=5) return ['Escalate to Security', 'Notify Legal', 'Suspend access'];
+  if(sev>=4) return ['Manager review', 'Open incident', 'Safety check'];
+  if(sev>=3) return ['Acknowledge & monitor', 'Offer support', 'HR review'];
+  return ['Acknowledge & monitor'];
 }
 function linksFor(cat){
-  const L=[];
-  if (/harass|assault/i.test(cat||'')){ L.push({t:'RAINN guidance',u:'https://www.rainn.org/resources'}); }
-  if (/self|harm|suicide/i.test(cat||'')){ L.push({t:'988 Lifeline',u:'https://988lifeline.org/help-yourself'}); }
-  if (/data|leak|breach/i.test(cat||'')){ L.push({t:'CISA incident response',u:'https://www.cisa.gov/incident-reporting'}); }
-  return L;
+  const L={ "Self-harm":[{t:'988 Lifeline',u:'https://988lifeline.org/'}],
+            "Data leak":[{t:'US-CERT',u:'https://www.cisa.gov/report'}],
+            "Threats":[{t:'FBI Tips',u:'https://tips.fbi.gov/'}] };
+  return L[cat]||[];
 }
-async function loadRecent(){
-  const r = await fetch('/.netlify/functions/list_cases?v=' + Date.now());
-  const d = await r.json();
-  renderList(d.cases||[]);
+
+function renderErr(msg){
+  el('#recent').innerHTML = `<div class='small' style='color:#ff6'>${msg}</div>`;
 }
-function renderErr(msg){  const host=document.querySelector('#recent');  host.innerHTML = `<div class='small' style='color:#ff6'>${msg}</div>`;}
 function renderList(cases){
-  const host = document.querySelector('#recent');
-  host.innerHTML = (cases||[]).map(c=>{
+  el('#recent').innerHTML = (cases||[]).map(c=>{
     const sev = scoreSeverity(c.category, c.summary);
     const acts = actionsFor(c.category, sev);
-    const links = linksFor(c.category);
+    const links = linksFor(c.category||'');
     return `<div class="card" style="margin:8px 0">
-      <b>${c.case_id}</b> — <span class="badge">Severity ${sev}/5</span style=\"background:${sevColor(sev)};color:#000;padding:2px 8px;border-radius:999px\"><br>
+      <b>${c.case_id}</b> — <span class="badge" style="background:${sevColor(sev)};color:#000">Severity ${sev}/5</span><br>
       <i>${c.category||'Uncategorized'}</i> — ${c.summary}<br>
       <b>Recommended:</b> ${acts.join(' · ')}<br>
       ${(links.length?('<b>Refs:</b> '+links.map(x=>`<a target="_blank" rel="noopener" href="${x.u}">${x.t}</a>`).join(' · ')):'')}
@@ -107,106 +88,35 @@ function renderList(cases){
   }).join('') || '<div class="small">No recent cases.</div>';
 }
 
-</script>
-<script>
-function el(s){return document.querySelector(s)}
 async function loadRecent(){
-  try {
+  try{
     const r = await fetch('/.netlify/functions/list_cases?v=' + Date.now());
-    const d = await r.json();
-    el('#recent').innerHTML = (d.cases||[]).map(c=>`
-      <div class="card" style="margin:8px 0">
-        <b>${c.case_id}</b> — <i>${c.category||'—'}</i><br>${c.summary}<br>
-        <span class="muted">${new Date(c.created_at).toLocaleString()}</span>
-      </div>`).join('') || 'No cases yet.';
-  } catch { el('#recent').textContent = 'Unable to load cases.'; }
+    if(!r.ok) throw new Error(await r.text());
+    const j = await r.json();
+    renderList(j.cases||[]);
+  }catch(e){ renderErr('Unable to load recent: ' + (e&&e.message||e)); }
 }
-loadRecent();
 
+// submit
 el('#f').onsubmit = async (e)=>{
   e.preventDefault();
   el('#msg').textContent = 'Submitting…';
-  const caseId = el('#caseId').value || (()=>{ 
-  if (window.crypto && window.crypto.getRandomValues) {
-    const a = new Uint32Array(1); window.crypto.getRandomValues(a);
-    return 'INC-' + a[0].toString(16).toUpperCase().padStart(6,'0').slice(0,6);
-  }
-  return 'INC-' + Math.random().toString(36).slice(2,8).toUpperCase();
-})();
+  const caseId = el('#caseId').value || (()=>{ const a=new Uint32Array(1); (crypto||window.crypto).getRandomValues(a); return 'INC-'+a[0].toString(16).toUpperCase().slice(0,6); })();
   const payload = { caseId, summary: el('#summary').value, category: el('#category').value };
   try{
     const r = await fetch('/.netlify/functions/submit_case', {
       method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(payload)
     });
-    if(!r.ok){ throw new Error(await r.text()) }
+    if(!r.ok) throw new Error(await r.text());
     el('#msg').textContent = 'Saved.';
     el('#summary').value = ''; el('#caseId').value = '';
-    await loadRecent();
+    loadRecent();
   }catch(err){
-    el('#msg').textContent = 'Error saving.';
+    el('#msg').textContent = 'Error: ' + (err&&err.message||err);
   }
 };
 
-function sevColor(sev){
-  if(sev>=4) return '#ff5555'; if(sev>=3) return '#ffcc00'; return '#33cc99';
-}
-function scoreSeverity(cat, summary){
-  const s = (summary||'').toLowerCase();
-  let sev = 1;
-  const catBoost = {'Self-harm':5,'Threats':4,'Harassment':3,'Data leak':5,'Violence':5,'Hate':4,'Policy/Compliance':4};
-  if (catBoost[cat]) sev = Math.max(sev, catBoost[cat]);
-
-  const bumps = [
-    {re:/ssn|social security|pii|data leak|breach|passwords|credentials|dox/i, sev:5},
-    {re:/suicide|self-harm|self harm|kill myself|harm myself/i, sev:5},
-    {re:/bomb|shoot|threat/i, sev:4},
-    {re:/sexual assault|assault|inappropriately touched|harassment/i, sev:4},
-    {re:/leak|exposed data|public repo/i, sev:4},
-    {re:/illegal|how to (?:make|do|bypass)|instructions to/i, sev:4}  // new: illegal instructions
-  ];
-  bumps.forEach(b=>{ if(b.re.test(s)) sev = Math.max(sev, b.sev); });
-  return Math.min(5, Math.max(1, sev));
-}
-  ];
-  bumps.forEach(b=>{ if(b.re.test(s)) sev = Math.max(sev, b.sev); });
-  return Math.min(5, Math.max(1, sev));
-}
-function actionsFor(cat, sev){
-  const a=[];
-  if (sev>=4){ a.push('Escalate to duty officer'); a.push('Pause affected workflows'); }
-  if (/harass|assault/i.test(cat||'')){ a.push('Open HR case'); a.push('Offer wellbeing resources'); }
-  if (/data|leak|breach/i.test(cat||'')){ a.push('Open legal ticket'); a.push('Notify security lead'); }
-  if (a.length===0) a.push('Acknowledge & monitor');
-  return a;
-}
-function linksFor(cat){
-  const L=[];
-  if (/harass|assault/i.test(cat||'')){ L.push({t:'RAINN guidance',u:'https://www.rainn.org/resources'}); }
-  if (/self|harm|suicide/i.test(cat||'')){ L.push({t:'988 Lifeline',u:'https://988lifeline.org/help-yourself'}); }
-  if (/data|leak|breach/i.test(cat||'')){ L.push({t:'CISA incident response',u:'https://www.cisa.gov/incident-reporting'}); }
-  return L;
-}
-async function loadRecent(){
-  const r = await fetch('/.netlify/functions/list_cases?v=' + Date.now());
-  const d = await r.json();
-  renderList(d.cases||[]);
-}
-function renderErr(msg){  const host=document.querySelector('#recent');  host.innerHTML = `<div class='small' style='color:#ff6'>${msg}</div>`;}
-function renderList(cases){
-  const host = document.querySelector('#recent');
-  host.innerHTML = (cases||[]).map(c=>{
-    const sev = scoreSeverity(c.category, c.summary);
-    const acts = actionsFor(c.category, sev);
-    const links = linksFor(c.category);
-    return `<div class="card" style="margin:8px 0">
-      <b>${c.case_id}</b> — <span class="badge">Severity ${sev}/5</span style=\"background:${sevColor(sev)};color:#000;padding:2px 8px;border-radius:999px\"><br>
-      <i>${c.category||'Uncategorized'}</i> — ${c.summary}<br>
-      <b>Recommended:</b> ${acts.join(' · ')}<br>
-      ${(links.length?('<b>Refs:</b> '+links.map(x=>`<a target="_blank" rel="noopener" href="${x.u}">${x.t}</a>`).join(' · ')):'')}
-      <div class="small" style="opacity:.8">Logged: ${new Date(c.created_at).toLocaleString()}</div>
-    </div>`;
-  }).join('') || '<div class="small">No recent cases.</div>';
-}
-
+// initial load
+loadRecent();
 </script>
 </body></html>
