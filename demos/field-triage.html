@@ -29,8 +29,18 @@
 </div>
 
 <div class="card">
-  <h2>Recent cases</h2>
-  <div id="recent">Loading…</div>
+<h2 style="margin-top:16px">Recent cases (live)</h2>
+<div id="recent" class="small">Loading…</div>
+<script>
+async function loadRecent(){
+  const r = await fetch('/.netlify/functions/list_cases');
+  const d = await r.json().catch(()=>({cases:[]}));
+  const html = (d.cases||[]).map(c=>`<div class="card" style="margin:8px 0">
+    <b>${c.case_id}</b> — ${c.summary}<br><span class="muted">${new Date(c.created_at).toLocaleString()}</span>
+  </div>`).join('') || 'No cases yet.';
+  document.querySelector('#recent').innerHTML = html;
+}
+loadRecent();
 </div>
 
 <script src="/assets/demo.js"></script>
