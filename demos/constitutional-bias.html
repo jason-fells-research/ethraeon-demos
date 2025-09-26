@@ -5,7 +5,7 @@
     <div class="small">Monitor outputs vs. policy; spot drifts; export audits.</div></div></div>
 
   <div class="card"><div class="badge">INTERACTIVE</div>
-    <h2>What this shows</h2>
+    <h2>What this shows</h2><p class='small'>Click <b>Simulate new run</b> to reseed pass/fail and see how audits export. Copy JSON/CSV to hand an audit bundle to compliance.</p><button id='btnSim'>Simulate new run</button>
     <ul>
       <li>Policy checks pass/fail + rationale.</li>
       <li>Summary compliance metric.</li>
@@ -44,6 +44,7 @@ loadJSON('/data/bias.json').then(d=>{
   `;
   document.querySelector('#btnCopyJSON').onclick = ()=>copy(JSON.stringify(d.tests, null, 2));
   document.querySelector('#btnCopyCSV').onclick  = ()=>copy(toCSV(d.tests));
+  const sim=document.getElementById('btnSim'); if(sim){ sim.onclick=reshuffle; }
 });
 </script>
 </body>

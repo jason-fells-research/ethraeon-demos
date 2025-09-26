@@ -45,7 +45,53 @@ async function loadRecent(){
 loadRecent();
 </div>
 
-<script src="/assets/demo.js"></script>
+<script src="/assets/demo.js">
+function scoreSeverity(cat, summary){
+  const s = (summary||'').toLowerCase();
+  let pts = 1;
+  if (/threat|harm|violence|assault|self-harm|suicide/.test(s)) pts += 3;
+  if (/data leak|dox|breach|leak/.test(s)) pts += 2;
+  if ((cat||'').toLowerCase().includes('harassment')) pts += 2;
+  if ((cat||'').toLowerCase().includes('safety')) pts += 2;
+  return Math.min(5, pts);
+}
+function actionsFor(cat, sev){
+  const a=[];
+  if (sev>=4){ a.push('Escalate to duty officer'); a.push('Pause affected workflows'); }
+  if (/harass|assault/i.test(cat||'')){ a.push('Open HR case'); a.push('Offer wellbeing resources'); }
+  if (/data|leak|breach/i.test(cat||'')){ a.push('Open legal ticket'); a.push('Notify security lead'); }
+  if (a.length===0) a.push('Acknowledge & monitor');
+  return a;
+}
+function linksFor(cat){
+  const L=[];
+  if (/harass|assault/i.test(cat||'')){ L.push({t:'RAINN guidance',u:'https://www.rainn.org/resources'}); }
+  if (/self|harm|suicide/i.test(cat||'')){ L.push({t:'988 Lifeline',u:'https://988lifeline.org/help-yourself'}); }
+  if (/data|leak|breach/i.test(cat||'')){ L.push({t:'CISA incident response',u:'https://www.cisa.gov/incident-reporting'}); }
+  return L;
+}
+async function loadRecent(){
+  const r = await fetch('/.netlify/functions/list_cases');
+  const d = await r.json();
+  renderList(d.cases||[]);
+}
+function renderList(cases){
+  const host = document.querySelector('#recent');
+  host.innerHTML = (cases||[]).map(c=>{
+    const sev = scoreSeverity(c.category, c.summary);
+    const acts = actionsFor(c.category, sev);
+    const links = linksFor(c.category);
+    return `<div class="card" style="margin:8px 0">
+      <b>${c.case_id}</b> — <span class="badge">Severity ${sev}/5</span><br>
+      <i>${c.category||'Uncategorized'}</i> — ${c.summary}<br>
+      <b>Recommended:</b> ${acts.join(' · ')}<br>
+      ${(links.length?('<b>Refs:</b> '+links.map(x=>`<a target="_blank" rel="noopener" href="${x.u}">${x.t}</a>`).join(' · ')):'')}
+      <div class="small" style="opacity:.8">Logged: ${new Date(c.created_at).toLocaleString()}</div>
+    </div>`;
+  }).join('') || '<div class="small">No recent cases.</div>';
+}
+
+</script>
 <script>
 function el(s){return document.querySelector(s)}
 async function loadRecent(){
@@ -84,5 +130,51 @@ el('#f').onsubmit = async (e)=>{
     el('#msg').textContent = 'Error saving.';
   }
 };
+
+function scoreSeverity(cat, summary){
+  const s = (summary||'').toLowerCase();
+  let pts = 1;
+  if (/threat|harm|violence|assault|self-harm|suicide/.test(s)) pts += 3;
+  if (/data leak|dox|breach|leak/.test(s)) pts += 2;
+  if ((cat||'').toLowerCase().includes('harassment')) pts += 2;
+  if ((cat||'').toLowerCase().includes('safety')) pts += 2;
+  return Math.min(5, pts);
+}
+function actionsFor(cat, sev){
+  const a=[];
+  if (sev>=4){ a.push('Escalate to duty officer'); a.push('Pause affected workflows'); }
+  if (/harass|assault/i.test(cat||'')){ a.push('Open HR case'); a.push('Offer wellbeing resources'); }
+  if (/data|leak|breach/i.test(cat||'')){ a.push('Open legal ticket'); a.push('Notify security lead'); }
+  if (a.length===0) a.push('Acknowledge & monitor');
+  return a;
+}
+function linksFor(cat){
+  const L=[];
+  if (/harass|assault/i.test(cat||'')){ L.push({t:'RAINN guidance',u:'https://www.rainn.org/resources'}); }
+  if (/self|harm|suicide/i.test(cat||'')){ L.push({t:'988 Lifeline',u:'https://988lifeline.org/help-yourself'}); }
+  if (/data|leak|breach/i.test(cat||'')){ L.push({t:'CISA incident response',u:'https://www.cisa.gov/incident-reporting'}); }
+  return L;
+}
+async function loadRecent(){
+  const r = await fetch('/.netlify/functions/list_cases');
+  const d = await r.json();
+  renderList(d.cases||[]);
+}
+function renderList(cases){
+  const host = document.querySelector('#recent');
+  host.innerHTML = (cases||[]).map(c=>{
+    const sev = scoreSeverity(c.category, c.summary);
+    const acts = actionsFor(c.category, sev);
+    const links = linksFor(c.category);
+    return `<div class="card" style="margin:8px 0">
+      <b>${c.case_id}</b> — <span class="badge">Severity ${sev}/5</span><br>
+      <i>${c.category||'Uncategorized'}</i> — ${c.summary}<br>
+      <b>Recommended:</b> ${acts.join(' · ')}<br>
+      ${(links.length?('<b>Refs:</b> '+links.map(x=>`<a target="_blank" rel="noopener" href="${x.u}">${x.t}</a>`).join(' · ')):'')}
+      <div class="small" style="opacity:.8">Logged: ${new Date(c.created_at).toLocaleString()}</div>
+    </div>`;
+  }).join('') || '<div class="small">No recent cases.</div>';
+}
+
 </script>
 </body></html>

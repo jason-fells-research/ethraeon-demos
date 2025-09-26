@@ -42,7 +42,7 @@ el('#scoreBtn').onclick=(e)=>{
     body: JSON.stringify({ text:t })
   }).then(r=>r.json()).then(p=>{
     el('#result').innerHTML = `<b>${t}</b><br>Risk score: ${(p.score*100|0)}%<br>
-      Signals: ${p.signals.join(', ')}<br>Suggested: ${p.actions.join(', ')}`
+      Signals: ${p.signals.join(', ')}<br>Actions: ${p.actions.join(', ')}`
   }).catch(()=>{ el('#result').textContent='Scoring service unavailable.'; });
 };
 </script>
@@ -51,7 +51,7 @@ fetch('/.netlify/functions/score', { method:'POST', headers:{'content-type':'app
   .then(r=>r.json())
   .then(p=>{
     el('#result').innerHTML = `<b>${t}</b><br>Risk score: ${(p.score*100|0)}%<br>
-      Signals: ${p.signals.join(', ')}<br>Suggested: ${p.actions.join(', ')}`;
+      Signals: ${p.signals.join(', ')}<br>Actions: ${p.actions.join(', ')}`;
 
     fetch('/.netlify/functions/submit_case.mjs', {
       method:'POST',

@@ -1,56 +1,49 @@
+<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Constitutional AI Framework — ETHRAEON</title><link rel="stylesheet" href="/assets/brand.css">
+<body><div class="container">
+  <div class="hero"><div class="logo"></div><div>
+    <h1>Constitutional AI Framework</h1>
+    <div class="small">Governance-first architecture that turns policies into checks, guardrails, and audits you can deploy.</div>
+  </div></div>
 
-<!doctype html><html lang="en"><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Constitutional AI Framework — ETHRAEON</title>
-<link rel="stylesheet" href="/assets/brand.css">
-<body>
-  <div class="container">
-    <div class="hero">
-      <div class="logo"></div>
-      <div>
-        <h1>Constitutional AI Framework</h1>
-        <div class="small">A practical way to ship AI safely: policies → checks → actions → audit.</div>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>What ETHRAEON is</h2>
-      <p>
-        ETHRAEON is a governance-first layer that sits between your models and your products.
-        It gives teams a common set of policies, checks, and audit trails so AI features can be
-        deployed with confidence in regulated and brand-sensitive environments.
-      </p>
-    </div>
-
-    <div class="card">
-      <h2>The core loop</h2>
-      <ol class="small">
-        <li><b>Declare policies</b> (e.g., “no protected-class stereotyping”, “cite sources for medical claims”).</li>
-        <li><b>Instrument checks</b> that evaluate model inputs/outputs against those policies.</li>
-        <li><b>Decide actions</b> based on risk (allow, redact, request human review, block, escalate).</li>
-        <li><b>Log & audit</b> every decision with reasons, so you can explain what happened later.</li>
-      </ol>
-    </div>
-
-    <div class="card">
-      <h2>How the demos map to the framework</h2>
-      <ul class="small">
-        <li><b>FactPulse</b> — applies checks for misinformation signals and recommends next actions.</li>
-        <li><b>Constitutional Bias Dashboard</b> — shows policies, pass/fail, and what would block a release.</li>
-        <li><b>Field Triage</b> — routes risky cases (self-harm, data leaks) with governance-safe playbooks.</li>
-        <li><b>EcoTrack Pro</b> — demonstrates governance for impact reporting (clear metrics, deltas, auditability).</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h2>What “simulated” means here</h2>
-      <p class="small">
-        These pages use realistic sample data so you can click through the workflows instantly.
-        They’re wired exactly like a production setup; swapping in your model, policies, or a database
-        is straightforward (see “Make it live” below).
-      </p>
-    </div>
-
-    <p class="small" style="opacity:.8;margin-top:16px">© ETHRAEON</p>
+  <div class="card">
+    <h2>Why it exists</h2>
+    <ul class="small">
+      <li>Enterprises want AI value, but need <b>predictable behavior</b>, <b>risk control</b>, and <b>auditability</b>.</li>
+      <li>Policies live in documents; production systems need <b>executable checks</b> and <b>evidence trails</b>.</li>
+    </ul>
   </div>
-</body></html>
+
+  <div class="card">
+    <h2>The Core Loop</h2>
+    <ol class="small">
+      <li><b>Inputs</b>: prompts, data, models, and user context.</li>
+      <li><b>Policies → Checks</b>: translate policy into testable constraints (safety, bias, privacy, brand).</li>
+      <li><b>Runtime Controls</b>: refuse/repair/route with human-in-the-loop.</li>
+      <li><b>Telemetry & Audit</b>: structured logs, system cards, exportable artifacts.</li>
+      <li><b>Review & Improve</b>: close the loop with drift monitoring and retraining gates.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>Where the demos fit</h2>
+    <ul class="small">
+      <li><b>FactPulse Pro</b> → Runtime signals + actions.</li>
+      <li><b>Bias Dashboard</b> → Policy checks & audit bundles.</li>
+      <li><b>Field Triage</b> → Intake → classify → governed actions.</li>
+      <li><b>EcoTrack Pro</b> → Outcomes tracking with operational playbooks.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Deployment model</h2>
+    <ul class="small">
+      <li><b>Start</b>: instrument one workflow; enable checks and exportable audits.</li>
+      <li><b>Scale</b>: add policies as code; route events to your ticketing/ChatOps.</li>
+      <li><b>Assure</b>: generate system cards, bias reports, and compliance exports on schedule.</li>
+    </ul>
+    <div class="small">References: <a target="_blank" rel="noopener" href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI RMF</a> · <a target="_blank" rel="noopener" href="https://oecd.ai/en/ai-principles">OECD AI principles</a></div>
+  </div>
+
+  <p class="small" style="opacity:.75">Status: interactive demo; integrations (ticketing/ChatOps/data) are straightforward add-ons.</p>
+</div></body></html>

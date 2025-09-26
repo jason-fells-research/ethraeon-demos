@@ -5,7 +5,7 @@
   <div class="small">Impact deltas from simple interventions — plus what to do next.</div></div></div>
 
   <div class="card"><div class="badge">SIMULATED</div>
-    <h2>Snapshot</h2>
+    <h2>Snapshot</h2><p class='small'><b>Why this matters:</b> EcoTrack shows operational deltas and proposes one-click playbook actions. In production, these route to Ops (tickets/Slack/email) with owners and due dates.</p>
     <div id="metrics" class="small">Loading…</div>
   </div>
 
@@ -57,7 +57,7 @@ document.addEventListener('click', (e)=>{
   const btn = e.target.closest('.nextStep');
   if(!btn) return;
   const msg = btn.getAttribute('data-action') || 'Next step';
-  alert(msg);
+  alert('Sent to Ops (simulated): '+msg);
 });
 
 </script>
