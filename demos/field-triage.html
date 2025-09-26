@@ -46,17 +46,26 @@ loadRecent();
 </div>
 
 <script src="/assets/demo.js">
+function sevColor(sev){
+  if(sev>=4) return '#ff5555'; if(sev>=3) return '#ffcc00'; return '#33cc99';
+}
 function scoreSeverity(cat, summary){
   const s = (summary||'').toLowerCase();
   let sev = 1;
-  const catBoost = {'Self-harm':5,'Threats':4,'Harassment':3,'Data leak':5,'Violence':5,'Hate':4};
+  const catBoost = {'Self-harm':5,'Threats':4,'Harassment':3,'Data leak':5,'Violence':5,'Hate':4,'Policy/Compliance':4};
   if (catBoost[cat]) sev = Math.max(sev, catBoost[cat]);
+
   const bumps = [
     {re:/ssn|social security|pii|data leak|breach|passwords|credentials|dox/i, sev:5},
     {re:/suicide|self-harm|self harm|kill myself|harm myself/i, sev:5},
     {re:/bomb|shoot|threat/i, sev:4},
     {re:/sexual assault|assault|inappropriately touched|harassment/i, sev:4},
-    {re:/leak|exposed data|public repo/i, sev:4}
+    {re:/leak|exposed data|public repo/i, sev:4},
+    {re:/illegal|how to (?:make|do|bypass)|instructions to/i, sev:4}  // new: illegal instructions
+  ];
+  bumps.forEach(b=>{ if(b.re.test(s)) sev = Math.max(sev, b.sev); });
+  return Math.min(5, Math.max(1, sev));
+}
   ];
   bumps.forEach(b=>{ if(b.re.test(s)) sev = Math.max(sev, b.sev); });
   return Math.min(5, Math.max(1, sev));
@@ -88,7 +97,7 @@ function renderList(cases){
     const acts = actionsFor(c.category, sev);
     const links = linksFor(c.category);
     return `<div class="card" style="margin:8px 0">
-      <b>${c.case_id}</b> — <span class="badge">Severity ${sev}/5</span><br>
+      <b>${c.case_id}</b> — <span class="badge">Severity ${sev}/5</span style=\"background:${sevColor(sev)};color:#000;padding:2px 8px;border-radius:999px\"><br>
       <i>${c.category||'Uncategorized'}</i> — ${c.summary}<br>
       <b>Recommended:</b> ${acts.join(' · ')}<br>
       ${(links.length?('<b>Refs:</b> '+links.map(x=>`<a target="_blank" rel="noopener" href="${x.u}">${x.t}</a>`).join(' · ')):'')}
@@ -137,17 +146,26 @@ el('#f').onsubmit = async (e)=>{
   }
 };
 
+function sevColor(sev){
+  if(sev>=4) return '#ff5555'; if(sev>=3) return '#ffcc00'; return '#33cc99';
+}
 function scoreSeverity(cat, summary){
   const s = (summary||'').toLowerCase();
   let sev = 1;
-  const catBoost = {'Self-harm':5,'Threats':4,'Harassment':3,'Data leak':5,'Violence':5,'Hate':4};
+  const catBoost = {'Self-harm':5,'Threats':4,'Harassment':3,'Data leak':5,'Violence':5,'Hate':4,'Policy/Compliance':4};
   if (catBoost[cat]) sev = Math.max(sev, catBoost[cat]);
+
   const bumps = [
     {re:/ssn|social security|pii|data leak|breach|passwords|credentials|dox/i, sev:5},
     {re:/suicide|self-harm|self harm|kill myself|harm myself/i, sev:5},
     {re:/bomb|shoot|threat/i, sev:4},
     {re:/sexual assault|assault|inappropriately touched|harassment/i, sev:4},
-    {re:/leak|exposed data|public repo/i, sev:4}
+    {re:/leak|exposed data|public repo/i, sev:4},
+    {re:/illegal|how to (?:make|do|bypass)|instructions to/i, sev:4}  // new: illegal instructions
+  ];
+  bumps.forEach(b=>{ if(b.re.test(s)) sev = Math.max(sev, b.sev); });
+  return Math.min(5, Math.max(1, sev));
+}
   ];
   bumps.forEach(b=>{ if(b.re.test(s)) sev = Math.max(sev, b.sev); });
   return Math.min(5, Math.max(1, sev));
@@ -179,7 +197,7 @@ function renderList(cases){
     const acts = actionsFor(c.category, sev);
     const links = linksFor(c.category);
     return `<div class="card" style="margin:8px 0">
-      <b>${c.case_id}</b> — <span class="badge">Severity ${sev}/5</span><br>
+      <b>${c.case_id}</b> — <span class="badge">Severity ${sev}/5</span style=\"background:${sevColor(sev)};color:#000;padding:2px 8px;border-radius:999px\"><br>
       <i>${c.category||'Uncategorized'}</i> — ${c.summary}<br>
       <b>Recommended:</b> ${acts.join(' · ')}<br>
       ${(links.length?('<b>Refs:</b> '+links.map(x=>`<a target="_blank" rel="noopener" href="${x.u}">${x.t}</a>`).join(' · ')):'')}

@@ -52,11 +52,7 @@ renderRecent();
   e.preventDefault();
   const t=el('#q').value.trim();
   if(!t){ el('#result').textContent='Enter some text first.'; return }
-  fetch('/.netlify/functions/score',{
-    method:'POST',
-    headers:{'content-type':'application/json'},
-    body: JSON.stringify({ text:t })
-  }).then(r=>r.json()).then(p=>{ renderRecent(); 
+  fetch('/.netlify/functions/score',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({text:t})}).then(r=>r.json()).then(p=>{ renderRecent(); 
     el('#result').innerHTML = `<b>${t}</b><br>Risk score: ${(p.score*100|0)}%<br>
       Signals: ${p.signals.join(', ')}<br>Actions: ${p.actions.join(', ')}`
   }).catch(()=>{ el('#result').textContent='Scoring service unavailable.'; });

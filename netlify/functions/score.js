@@ -1,69 +1,49 @@
-function safeParse(body) {
-  try { return JSON.parse(body || "{}"); } catch { function uniqPick(pool, rA, rB){
-  const a = pool[Math.floor(rA*pool.length)];
-  let b = pool[Math.floor(rB*pool.length)];
-  if(b===a) b = pool[(Math.floor(rB*pool.length)+1)%pool.length];
-  return [a,b];
-}
-function srcPick(rA,rB){
-  const pool = [
-    {name:"AP News", url:"https://apnews.com"},
-    {name:"BBC Reality Check", url:"https://www.bbc.co.uk/news/reality_check"},
-    {name:"Snopes", url:"https://www.snopes.com"},
-    {name:"PolitiFact", url:"https://www.politifact.com"},
-    {name:"EU DisinfoLab", url:"https://www.disinfo.eu"}
-  ];
-  let [s1,s2] = uniqPick(pool, rA, rB);
-  return [s1,s2];
-}
-return {}; }
-}
-function djb2Hash(str){
-  let h = 5381;
-  for (let i=0;i<str.length;i++) h = ((h<<5) + h) + str.charCodeAt(i);
-  return h >>> 0; // uint
-}
+
 exports.handler = async (event) => {
   try {
-    const { text = "" } = safeParse(event.body);
-    // validate
-    if (typeof text !== "string") {
-      return { statusCode: 400, body: JSON.stringify({ error: "text must be a string" }) };
-    }
-    const t = text.trim().slice(0, 500); // cap length for perf
-    if (!t) return { statusCode: 400, body: JSON.stringify({ error: "no text" }) };
+    let text = "";
+    try { ({ text = "" } = JSON.parse(event.body || "{}")); } catch {}
+    if (typeof text !== "string") text = String(text || "");
+    text = text.slice(0, 2000).trim();
 
-    // deterministic but varied
-    const h = djb2Hash(t);
-    const rnd = s => { const x = Math.sin(s) * 10000; return x - Math.floor(x); };
-    const r1 = rnd(h), r2 = rnd(h+13), r3 = rnd(h+27);
+    // hash-ish variability
+    let h = 0; for (let i=0;i<text.length;i++){ h = ((h<<5)-h) + text.charCodeAt(i) | 0; }
+    const r1 = Math.abs(h % 1000)/1000, r2 = Math.abs((h*9301+49297)%1000)/1000, r3 = Math.abs((h*2333+777)%1000)/1000;
+
+    const clamp = (x,min,max)=>Math.max(min,Math.min(max,x));
+    const base = 0.35 + (r1-0.5)*0.5; // 0.1..0.6
+    const score = clamp(base, 0.05, 0.95);
 
     const signalsPool = ['no-source-citation','low-source-cred','coordinated-amplification','misleading-caption','out-of-context-clip','synthetic-media-indicators','delegitimizing-language'];
-    const actionsPool = ['monitor','prepare-FAQ','link-to-official','internal flag','legal review','platform escalation','takedown request'];
-    const pick = (arr, r)=> arr[Math.floor(r * arr.length)];
-    const score = Math.max(0, Math.min(1, 0.25 + 0.6*r1)); // 25–85%
-
+    const actionsPool = ['monitor','link-to-official','internal flag','prepare-FAQ','legal review','platform escalation','takedown request'];
     const sourcesPool = [
-      {name:"Reuters", url:"https://www.reuters.com"},
-      {name:"AP News", url:"https://apnews.com"},
-      {name:"CDC", url:"https://www.cdc.gov"},
-      {name:"EU DisinfoLab", url:"https://www.disinfo.eu"},
-      {name:"WHO", url:"https://www.who.int"}
+      {name:'AP News', url:'https://apnews.com'},
+      {name:'Poynter IFCN', url:'https://www.poynter.org/ifcn/'},
+      {name:'EU DisinfoLab', url:'https://www.disinfo.eu'},
+      {name:'WHO', url:'https://www.who.int'}
     ];
-    const s1 = sourcesPool[Math.floor(r2 * sourcesPool.length)];
-    const s2 = sourcesPool[Math.floor(r3 * sourcesPool.length)];
+    function uniqPick(pool, a, b){
+      const x = pool[Math.floor(a*pool.length)];
+      let y = pool[Math.floor(b*pool.length)];
+      if (y===x) y = pool[(Math.floor(b*pool.length)+1)%pool.length];
+      return [x,y];
+    }
 
     return {
       statusCode: 200,
-      headers: { 'content-type': 'application/json', 'cache-control': 'no-cache' },
+      headers: { 'content-type':'application/json','cache-control':'no-cache' },
       body: JSON.stringify({
         score,
-        signals: [pick(signalsPool, r2), pick(signalsPool, r3)],
-        actions: [pick(actionsPool, r3), pick(actionsPool, r2)],
+        signals: uniqPick(signalsPool, r2, r3),
+        actions: uniqPick(actionsPool, r3, r2),
         sources: uniqPick(sourcesPool, r2, r3)
       })
     };
   } catch (e) {
-    return { statusCode: 500, body: JSON.stringify({ error: String(e) }) };
+    // never explode the demo; return a soft default
+    return { statusCode: 200, headers:{'content-type':'application/json'}, body: JSON.stringify({
+      score: 0.42, signals: ['no-source-citation','low-source-cred'], actions: ['monitor','link-to-official'],
+      sources: [{name:'AP News',url:'https://apnews.com'},{name:'WHO',url:'https://who.int'}]
+    })};
   }
 };
