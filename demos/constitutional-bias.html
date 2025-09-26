@@ -1,106 +1,124 @@
-<!doctype html><html lang="en">
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Constitutional Bias Dashboard — Demo</title>
-<link rel="stylesheet" href="../assets/brand.css">
-<body>
+<style>
+  :root{
+    --bg:#0b0e13; --card:#111317; --line:#1b1e25;
+    --text:#e6e9ef; --muted:#9aa3b2; --accent:#16c1b8; --pass:#2e7d32; --fail:#b3261e;
+  }
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  .wrap{max-width:900px;margin:40px auto;padding:0 16px}
+  h1{margin:0 0 10px} a{color:var(--accent)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:14px 0}
+  button{background:#0f131a;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;cursor:pointer}
+  table{width:100%;border-collapse:collapse;margin-top:8px}
+  th,td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  .small{font-size:12px;color:var(--muted)} .pill{padding:2px 8px;border-radius:999px}
+  .pass{background:rgba(46,125,50,.15);color:#b2eab5} .fail{background:rgba(179,38,30,.15);color:#ffc1bd}
+  dialog{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:10px;width:min(700px,90vw);padding:0}
+  dialog::backdrop{background:rgba(0,0,0,.5)}
+  .modal-head{padding:14px 16px;border-bottom:1px solid var(--line);font-weight:600}
+  .modal-body{padding:16px;max-height:60vh;overflow:auto}
+  pre{margin:0;white-space:pre-wrap;word-wrap:break-word}
+</style>
 <div class="wrap">
-  <h1>Constitutional Bias Dashboard <span class="badge">Demo</span></h1>
+  <h1>Constitutional Bias Dashboard <span class="pill pass">demo</span></h1>
+  <p class="small">Shows policy checks with pass/fail, rationales, and an exportable audit bundle.</p>
+
+  <div class="card" id="panel">Loading…</div>
 
   <div class="card">
-    <p class="small">Self-contained demo data. Buttons work without any backend.</p>
-    <div style="margin:8px 0">
-      <button id="btnSim">Simulate new run</button>
-      <button id="btnCopyJSON">Copy JSON</button>
-      <button id="btnCopyCSV">Copy CSV</button>
-      <button id="btnViewJSON">View raw</button>
-    </div>
-    <div id="summary" class="small" style="margin-top:6px"></div>
-
-    <table class="small" style="width:100%;margin-top:10px">
-      <thead><tr><th>Status</th><th>Policy</th><th>Details</th></tr></thead>
-      <tbody id="tbody"></tbody>
-    </table>
-
-    <div class="small" style="margin-top:10px">
-      <b>Policy references:</b>
+    <div class="small">
+      Policy references:
       <a target="_blank" rel="noopener" href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI RMF</a> ·
       <a target="_blank" rel="noopener" href="https://oecd.ai/en/ai-principles">OECD AI principles</a> ·
       <a target="_blank" rel="noopener" href="https://ai.facebook.com/tools/system-cards/">System Cards (Meta)</a>
     </div>
   </div>
-
-  <dialog id="rawDlg" style="max-width:800px">
-    <h3>Exported audit bundle</h3>
-    <pre id="rawTxt" style="max-height:360px;overflow:auto;background:#111317;border:1px solid #1b1e25;padding:10px;border-radius:8px"></pre>
-    <div style="margin-top:8px">
-      <button id="dlJSON">Download JSON</button>
-      <button id="dlCSV">Download CSV</button>
-      <button onclick="document.getElementById('rawDlg').close()">Close</button>
-    </div>
-  </dialog>
 </div>
 
+<dialog id="rawDlg">
+  <div class="modal-head">Exported audit bundle</div>
+  <div class="modal-body">
+    <pre id="rawTxt"></pre>
+  </div>
+  <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--line);padding:12px 16px">
+    <button id="dlJSON">Download JSON</button>
+    <button id="dlCSV">Download CSV</button>
+    <button onclick="rawDlg.close()">Close</button>
+  </div>
+</dialog>
+
 <script>
-const seedData = () => ({
-  runId: 'AUD-' + Math.random().toString(36).slice(2,8).toUpperCase(),
-  tests: [
-    { status:'FAIL', policy:'No protected-class stereotyping', details:'Model suggested different credit limits by ZIP-code proxy.' },
-    { status:'PASS', policy:'No medical claims without citations', details:'All outputs included source footnotes.' },
-    { status:'PASS', policy:'No unsafe instructions', details:'Blocked explosives instructions; suggested safety page.' }
-  ],
-  generated_at: new Date().toISOString()
-});
+const $ = s => document.querySelector(s);
 
-let data = seedData();
-
+function copy(txt){ return navigator.clipboard.writeText(txt); }
 function toCSV(rows){
+  const esc = v => `"${String(v??'').replace(/"/g,'""')}"`;
   const head = ['status','policy','details'];
-  return [head.join(','), ...rows.map(r=>[r.status,r.policy,`"${r.details.replace(/"/g,'""')}"`].join(','))].join('\n');
+  return [head.join(','), ...rows.map(r=>[esc(r.status),esc(r.policy),esc(r.details)].join(','))].join('\n');
 }
-
-function render(){
-  const tbody = document.getElementById('tbody');
-  tbody.innerHTML = data.tests.map(t=>`
+function render(d){
+  const rows = d.tests.map(t=>`
     <tr>
-      <td><span class="badge" style="background:${t.status==='PASS'?'#33cc99':'#ffcc00'};color:#000">${t.status}</span></td>
+      <td><span class="pill ${t.status==='PASS'?'pass':'fail'}">${t.status}</span></td>
       <td>${t.policy}</td>
       <td>${t.details}</td>
-    </tr>`).join('');
-  const pass = data.tests.filter(t=>t.status==='PASS').length;
-  const fail = data.tests.length - pass;
-  document.getElementById('summary').innerHTML =
-    `<b>Run:</b> ${data.runId} · <b>Pass:</b> ${pass} · <b>Fail:</b> ${fail} · <span style="opacity:.7">${new Date(data.generated_at).toLocaleString()}</span>`;
+    </tr>
+  `).join('');
+  const summary = `${d.tests.filter(x=>x.status==='PASS').length} PASS / ${d.tests.filter(x=>x.status==='FAIL').length} FAIL`;
+  $('#panel').innerHTML = `
+    <div style="display:flex;gap:8px;justify-content:space-between;align-items:center">
+      <div><b>Audit summary:</b> ${summary}</div>
+      <div style="display:flex;gap:8px">
+        <button id="btnSim">Simulate new run</button>
+        <button id="btnCopyJSON">Copy JSON</button>
+        <button id="btnCopyCSV">Copy CSV</button>
+        <button id="btnViewJSON">View raw</button>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Status</th><th>Policy</th><th>Details</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+
+  const safeCopy = (f,msg) => { try{ f(); } catch{ alert(msg||'Copy failed'); } };
+
+  $('#btnCopyJSON').onclick = ()=> safeCopy(()=>copy(JSON.stringify(d.tests,null,2)),'Failed to copy JSON.');
+  $('#btnCopyCSV').onclick  = ()=> safeCopy(()=>copy(toCSV(d.tests)),'Failed to copy CSV.');
+  $('#btnViewJSON').onclick = ()=>{
+    $('#rawTxt').textContent = JSON.stringify({ generatedAt:new Date().toISOString(), tests:d.tests }, null, 2);
+    rawDlg.showModal();
+  };
+  $('#dlJSON').onclick = ()=>{
+    const blob = new Blob([$('#rawTxt').textContent],{type:'application/json'});
+    const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:'bias_audit.json'}); a.click();
+  };
+  $('#dlCSV').onclick = ()=>{
+    // reconstruct CSV from dialog JSON
+    try{
+      const obj = JSON.parse($('#rawTxt').textContent||'{}'); 
+      const csv = toCSV(obj.tests||[]);
+      const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'bias_audit.csv'}); a.click();
+    }catch{ alert('Export failed'); }
+  };
+  $('#btnSim').onclick = ()=>{
+    // flip ~1/3 of statuses for a fresh view
+    d.tests.forEach(t=>{ if(Math.random()<0.33){ t.status = (t.status==='PASS'?'FAIL':'PASS'); } });
+    render(d);
+  };
 }
 
-function copy(text){
-  navigator.clipboard.writeText(text).then(()=>alert('Copied!')).catch(()=>alert('Copy failed'));
-}
-
-document.getElementById('btnSim').onclick = ()=>{
-  // Randomly flip ~1/3 of rows to show change
-  data = seedData();
-  data.tests = data.tests.map(t=>{
-    if(Math.random()<0.33){ t.status = (t.status==='PASS'?'FAIL':'PASS'); }
-    return t;
-  });
-  render();
-};
-document.getElementById('btnCopyJSON').onclick = ()=>copy(JSON.stringify(data.tests,null,2));
-document.getElementById('btnCopyCSV').onclick  = ()=>copy(toCSV(data.tests));
-document.getElementById('btnViewJSON').onclick = ()=>{
-  const raw = JSON.stringify({runId:data.runId, tests:data.tests, generated_at:data.generated_at}, null, 2);
-  document.getElementById('rawTxt').textContent = raw;
-  document.getElementById('rawDlg').showModal();
-};
-document.getElementById('dlJSON').onclick=()=>{
-  const blob=new Blob([document.getElementById('rawTxt').textContent],{type:'application/json'});
-  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:'bias_audit.json'}); a.click();
-};
-document.getElementById('dlCSV').onclick=()=>{
-  const csv=toCSV(data.tests);
-  const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'bias_audit.csv'}); a.click();
-};
-
-render();
+(async ()=>{
+  try{
+    const d = await (await fetch('../data/bias.json?v='+Date.now())).json();
+    render(d);
+  }catch(e){
+    $('#panel').innerHTML = `<div class="small" style="color:#f99">Data error: ${e?.message||e}</div>`;
+  }
+})();
 </script>
-</body></html>
+</html>
