@@ -1,222 +1,116 @@
-<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Constitutional Bias Dashboard — ETHRAEON</title><link rel="stylesheet" href="/assets/brand.css">
-<body><div class="container">
-  <div class="hero"><div class="logo"></div><div><h1>Constitutional Bias Dashboard</h1>
-    <div class="small">Monitor outputs vs. policy; spot drifts; export audits.</div></div></div>
+<!doctype html><html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../assets/brand.css">
+<title>Constitutional Bias Dashboard</title>
+<body>
+<div class="wrap">
+  <h1><span class="dot"></span> Constitutional Bias Dashboard</h1>
+  <p class="sub">Monitor outputs vs. policy; spot drifts; export audits.</p>
 
-  <div class="card"><div class="badge">INTERACTIVE</div>
-    <h2>What this shows</h2><p class='small'>Click <b>Simulate new run</b> to reseed pass/fail and see how audits export. Copy JSON/CSV to hand an audit bundle to compliance.</p><button id='btnSim'>Simulate new run</button>
-    <ul>
+  <div class="card">
+    <span class="badge">INTERACTIVE</span>
+    <h2>What this shows</h2>
+    <p>Click <b>Simulate new run</b> to reseed pass/fail and see how audits export. Copy JSON/CSV to hand an audit bundle to compliance.</p>
+    <button id="btnSim">Simulate new run</button>
+    <ul class="small">
       <li>Policy checks pass/fail + rationale.</li>
       <li>Summary compliance metric.</li>
-      <li>One-click copy: JSON or CSV (no file hunting).</li>
+      <li>One-click copy / download JSON or CSV.</li>
     </ul>
-    <div id="bias" class="small" style="margin-top:12px">Loading…</div>
+    <div id="summary" class="small" style="margin-top:6px;opacity:.85"></div>
+    <table class="small" style="width:100%;margin-top:10px">
+      <thead><tr><th>Status</th><th>Policy</th><th>Details</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div style="margin-top:10px">
+      <button id="btnCopyJSON">Copy JSON</button>
+      <button id="btnCopyCSV">Copy CSV</button>
+      <button id="btnViewJSON">View raw JSON</button>
+    </div>
   </div>
 
-  <script src="/assets/demo.js">
-// Bias demo script (clean)
-loadJSON('..../data/bias.json?v=' + Date.now()).then(d=>{
-  const rows = d.tests.map(t=>`<tr>
-    <td style="font-weight:700">${t.pass?'PASS':'FAIL'}</td>
-    <td>${t.policy}</td>
-    <td>${t.details}</td>
-  </tr>`).join('');
-  const pass = d.tests.filter(x=>x.pass).length;
-  const fail = d.tests.length - pass;
-  const summary = `${pass} PASS / ${fail} FAIL`;
-  document.getElementById('bias').innerHTML = `
-    <div class="small"><b>Summary:</b> ${summary}</div>
-    <div style="margin:8px 0">
-      <button id="btnSim">Simulate new run</button>
-      <button id="btnCopyJSON">Copy JSON</button>
-      <button id="btnCopyCSV">Copy CSV</button>
-      <button id="btnViewJSON">View raw JSON</button>
+  <div class="card small">
+    <b>Policy references:</b>
+    <a target="_blank" rel="noopener" href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI RMF</a> ·
+    <a target="_blank" rel="noopener" href="https://oecd.ai/en/ai-principles">OECD AI principles</a> ·
+    <a target="_blank" rel="noopener" href="https://ai.facebook.com/tools/system-cards/">System Cards (Meta)</a>
+  </div>
+
+  <dialog id="rawDlg">
+    <h3>Exported audit bundle</h3>
+    <pre id="rawTxt" style="max-height:360px;overflow:auto;background:#111317;border:1px solid #1b1e25;padding:10px;border-radius:8px"></pre>
+    <div style="margin-top:8px">
+      <button id="dlJSON">Download JSON</button>
+      <button id="dlCSV">Download CSV</button>
+      <button onclick="document.getElementById('rawDlg').close()">Close</button>
     </div>
-    <table class="small" style="width:100%">
-      <thead><tr><th>Status</th><th>Policy</th><th>Details</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+  </dialog>
+</div>
 
-  function toCSV(arr){ const head=['status','policy','details'];
-    const rows=arr.map(t=>[(t.pass?'PASS':'FAIL'),t.policy,t.details]);
-    return [head.join(','), ...rows.map(r=>r.join(','))].join('\\n');
-  }
-  function copy(txt){ navigator.clipboard.writeText(txt).then(()=>alert('Copied.')); }
-
-  document.getElementById('btnSim').onclick = ()=>{
-    [...document.querySelectorAll('#bias tbody tr')].forEach(tr=>{
-      if(Math.random()<0.33){ const c=tr.children[0]; c.textContent = (c.textContent==='PASS'?'FAIL':'PASS'); }
-    });
-  };
-  document.getElementById('btnCopyJSON').onclick = ()=>copy(JSON.stringify(d.tests,null,2));
-  document.getElementById('btnCopyCSV').onclick  = ()=>copy(toCSV(d.tests));
-  document.getElementById('btnViewJSON').onclick = ()=>{
-    const raw = JSON.stringify(d.tests,null,2);
-    document.getElementById('rawTxt').textContent = raw;
-    document.getElementById('rawDlg').showModal();
-  };
-  document.getElementById('dlJSON').onclick = ()=>{
-    const raw = document.getElementById('rawTxt').textContent;
-    const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([raw],{type:'application/json'})),download:'bias_audit.json'}); a.click();
-  };
-  document.getElementById('dlCSV').onclick = ()=>{
-    const csv = toCSV(d.tests);
-    const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'bias_audit.csv'}); a.click();
-  };
-}).catch(()=>{ document.getElementById('bias').textContent='Unable to load.'; });
-
-
-// Self-contained bias demo
-const tests = [
-  { pass:false, policy:'No protected-class stereotyping', details:'Model suggested different credit limits by ZIP proxy.' },
-  { pass:true,  policy:'No medical claims without citations', details:'Outputs included source footnotes.' },
-  { pass:true,  policy:'No unsafe instructions', details:'Blocked explosives instructions; suggested safety page.' }
-];
-(function(){
-  const rows = tests.map(t=>`<tr><td style="font-weight:700">${t.pass?'PASS':'FAIL'}</td><td>${t.policy}</td><td>${t.details}</td></tr>`).join('');
-  const pass = tests.filter(x=>x.pass).length, fail = tests.length-pass;
-  const summary = `${pass} PASS / ${fail} FAIL`;
-  const host = document.getElementById('bias') || (function(){ const d=document.createElement('div'); d.id='bias'; d.className='small'; document.currentScript.parentElement.prepend(d); return d; })();
-  host.innerHTML = `
-    <div class="small"><b>Summary:</b> ${summary}</div>
-    <div style="margin:8px 0">
-      <button id="btnSim">Simulate new run</button>
-      <button id="btnCopyJSON">Copy JSON</button>
-      <button id="btnCopyCSV">Copy CSV</button>
-      <button id="btnViewJSON">View raw JSON</button>
-    </div>
-    <table class="small" style="width:100%"><thead><tr><th>Status</th><th>Policy</th><th>Details</th></tr></thead><tbody>${rows}</tbody></table>`;
-
-  function toCSV(arr){ const head=['status','policy','details']; const rows=arr.map(t=>[(t.pass?'PASS':'FAIL'),t.policy,t.details]); return [head.join(','),...rows.map(r=>r.join(','))].join('\n'); }
-  function copy(txt){ navigator.clipboard.writeText(txt).then(()=>alert('Copied.')); }
-
-  document.getElementById('btnSim').onclick = ()=>{ [...host.querySelectorAll('tbody tr')].forEach(tr=>{ if(Math.random()<0.33){ const c=tr.children[0]; c.textContent=(c.textContent==='PASS'?'FAIL':'PASS'); } }); };
-  document.getElementById('btnCopyJSON').onclick = ()=>copy(JSON.stringify(tests,null,2));
-  document.getElementById('btnCopyCSV').onclick  = ()=>copy(toCSV(tests));
-  document.getElementById('btnViewJSON').onclick = ()=>{ const raw=JSON.stringify(tests,null,2); const pre=document.getElementById('rawTxt'); pre.textContent=raw; document.getElementById('rawDlg').showModal(); };
-})();
-
-document.getElementById('dlJSON').onclick=()=>{const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([rawTxt.textContent],{type:'application/json'})),download:'bias_audit.json'});a.click();};
-document.getElementById('dlCSV').onclick =()=>{const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([rawTxt.textContent],{type:'text/csv'})),download:'bias_audit.csv'});a.click();};
-</script>
 <script>
-function toCSV(rows){
-  const head = ["status","policy","details"];
-  const esc = v => `"${String(v).replace(/"/g,'""')}"`;
-  return [head.join(","), ...rows.map(t=>[t.pass?'PASS':'FAIL', t.policy, t.details].map(esc).join(","))].join("\n");
+const seedData = {
+  tests: [
+    {policy:"No protected-class stereotyping", status:"FAIL", details:"Model suggested different credit limits by ZIP proxy."},
+    {policy:"No medical claims without citations", status:"PASS", details:"All outputs included a footnoted source."},
+    {policy:"No unsafe instructions", status:"PASS", details:"Explosives request refused with safety guidance."}
+  ]
+};
+
+function copy(txt){
+  return navigator.clipboard.writeText(txt)
+    .then(()=>alert('Copied to clipboard'))
+    .catch(()=>alert('Copy failed'));
 }
-function copy(txt){ navigator.clipboard.writeText(txt).then(()=>alert('Copied.')); }
-
-loadJSON('..../data/bias.json?v=' + Date.now()).then(d=>{
-  const pass = d.tests.filter(t=>t.pass).length;
+function toCSV(arr){
+  const header = ['status','policy','details'];
+  const rows = arr.map(t=>[t.status,t.policy,t.details]);
+  return [header,...rows].map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+}
+function render(d){
+  // summary
   const total = d.tests.length;
-  const summary = `Policies met: ${pass}/${total} • ${Math.round(pass/total*100)}% compliance`;
-  document.querySelector('#bias').innerHTML = `
-    <div class="card">
-      <b>Summary:</b> ${summary}<br>
-      <div style="margin-top:8px">
-        <button id="btnCopyJSON">Copy JSON</button>
-        <button id="btnCopyCSV">Copy CSV</button>
-      </div>
-    </div>
-    <div style="margin-top:8px"></div>
-    ${d.tests.map(t=>`
-      <div class="card" style="margin:8px 0">
-        <b>Status:</b> ${t.pass?'PASS':'FAIL'} &nbsp; <b>Policy:</b> ${t.policy}<br>
-        <b>Details:</b> ${t.details}
-      </div>`).join('')}
-  `;
-  function toCSV(arr){ const head=['status','policy','details']; const rows=arr.map(t=>[(t.pass?'PASS':'FAIL'),t.policy,t.details]); return [head.join(','), *[r.join(',') for r in rows]].join('\n'); }
-document.querySelector('#btnCopyJSON').onclick = ()=>copy(JSON.stringify(d.tests, null, 2));
-  document.querySelector('#btnCopyCSV').onclick  = ()=>copy(toCSV(d.tests));
-  const sim=document.getElementById('btnSim'); if(sim){ sim.onclick=reshuffle; }
-});
+  const pass = d.tests.filter(t=>t.status==='PASS').length;
+  const pct  = Math.round((pass/total)*100);
+  document.getElementById('summary').innerHTML =
+    `<b>Summary:</b> ${pct}% compliant (${pass}/${total} checks PASS)`;
 
-// Bias demo script (clean)
-loadJSON('..../data/bias.json?v=' + Date.now()).then(d=>{
-  const rows = d.tests.map(t=>`<tr>
-    <td style="font-weight:700">${t.pass?'PASS':'FAIL'}</td>
-    <td>${t.policy}</td>
-    <td>${t.details}</td>
-  </tr>`).join('');
-  const pass = d.tests.filter(x=>x.pass).length;
-  const fail = d.tests.length - pass;
-  const summary = `${pass} PASS / ${fail} FAIL`;
-  document.getElementById('bias').innerHTML = `
-    <div class="small"><b>Summary:</b> ${summary}</div>
-    <div style="margin:8px 0">
-      <button id="btnSim">Simulate new run</button>
-      <button id="btnCopyJSON">Copy JSON</button>
-      <button id="btnCopyCSV">Copy CSV</button>
-      <button id="btnViewJSON">View raw JSON</button>
-    </div>
-    <table class="small" style="width:100%">
-      <thead><tr><th>Status</th><th>Policy</th><th>Details</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>`;
+  // rows
+  document.getElementById('rows').innerHTML = d.tests.map(t=>{
+    const badge = t.status==='PASS' ? '<span class="badge" style="background:#33cc99;color:#00140e">PASS</span>'
+                                    : '<span class="badge" style="background:#ff5555;color:#220000">FAIL</span>';
+    return `<tr><td>${badge}</td><td>${t.policy}</td><td>${t.details}</td></tr>`;
+  }).join('');
+}
+function simulate(d){
+  const out = JSON.parse(JSON.stringify(d));
+  out.tests.forEach(t=>{
+    if(Math.random()<0.35){ t.status = (t.status==='PASS'?'FAIL':'PASS'); }
+  });
+  return out;
+}
 
-  function toCSV(arr){ const head=['status','policy','details'];
-    const rows=arr.map(t=>[(t.pass?'PASS':'FAIL'),t.policy,t.details]);
-    return [head.join(','), ...rows.map(r=>r.join(','))].join('\\n');
-  }
-  function copy(txt){ navigator.clipboard.writeText(txt).then(()=>alert('Copied.')); }
+let current = seedData;
+render(current);
 
-  document.getElementById('btnSim').onclick = ()=>{
-    [...document.querySelectorAll('#bias tbody tr')].forEach(tr=>{
-      if(Math.random()<0.33){ const c=tr.children[0]; c.textContent = (c.textContent==='PASS'?'FAIL':'PASS'); }
-    });
-  };
-  document.getElementById('btnCopyJSON').onclick = ()=>copy(JSON.stringify(d.tests,null,2));
-  document.getElementById('btnCopyCSV').onclick  = ()=>copy(toCSV(d.tests));
-  document.getElementById('btnViewJSON').onclick = ()=>{
-    const raw = JSON.stringify(d.tests,null,2);
-    document.getElementById('rawTxt').textContent = raw;
-    document.getElementById('rawDlg').showModal();
-  };
-  document.getElementById('dlJSON').onclick = ()=>{
-    const raw = document.getElementById('rawTxt').textContent;
-    const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([raw],{type:'application/json'})),download:'bias_audit.json'}); a.click();
-  };
-  document.getElementById('dlCSV').onclick = ()=>{
-    const csv = toCSV(d.tests);
-    const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'bias_audit.csv'}); a.click();
-  };
-}).catch(()=>{ document.getElementById('bias').textContent='Unable to load.'; });
-
-
-// Self-contained bias demo
-const tests = [
-  { pass:false, policy:'No protected-class stereotyping', details:'Model suggested different credit limits by ZIP proxy.' },
-  { pass:true,  policy:'No medical claims without citations', details:'Outputs included source footnotes.' },
-  { pass:true,  policy:'No unsafe instructions', details:'Blocked explosives instructions; suggested safety page.' }
-];
-(function(){
-  const rows = tests.map(t=>`<tr><td style="font-weight:700">${t.pass?'PASS':'FAIL'}</td><td>${t.policy}</td><td>${t.details}</td></tr>`).join('');
-  const pass = tests.filter(x=>x.pass).length, fail = tests.length-pass;
-  const summary = `${pass} PASS / ${fail} FAIL`;
-  const host = document.getElementById('bias') || (function(){ const d=document.createElement('div'); d.id='bias'; d.className='small'; document.currentScript.parentElement.prepend(d); return d; })();
-  host.innerHTML = `
-    <div class="small"><b>Summary:</b> ${summary}</div>
-    <div style="margin:8px 0">
-      <button id="btnSim">Simulate new run</button>
-      <button id="btnCopyJSON">Copy JSON</button>
-      <button id="btnCopyCSV">Copy CSV</button>
-      <button id="btnViewJSON">View raw JSON</button>
-    </div>
-    <table class="small" style="width:100%"><thead><tr><th>Status</th><th>Policy</th><th>Details</th></tr></thead><tbody>${rows}</tbody></table>`;
-
-  function toCSV(arr){ const head=['status','policy','details']; const rows=arr.map(t=>[(t.pass?'PASS':'FAIL'),t.policy,t.details]); return [head.join(','),...rows.map(r=>r.join(','))].join('\n'); }
-  function copy(txt){ navigator.clipboard.writeText(txt).then(()=>alert('Copied.')); }
-
-  document.getElementById('btnSim').onclick = ()=>{ [...host.querySelectorAll('tbody tr')].forEach(tr=>{ if(Math.random()<0.33){ const c=tr.children[0]; c.textContent=(c.textContent==='PASS'?'FAIL':'PASS'); } }); };
-  document.getElementById('btnCopyJSON').onclick = ()=>copy(JSON.stringify(tests,null,2));
-  document.getElementById('btnCopyCSV').onclick  = ()=>copy(toCSV(tests));
-  document.getElementById('btnViewJSON').onclick = ()=>{ const raw=JSON.stringify(tests,null,2); const pre=document.getElementById('rawTxt'); pre.textContent=raw; document.getElementById('rawDlg').showModal(); };
-})();
-
-document.getElementById('dlJSON').onclick=()=>{const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([rawTxt.textContent],{type:'application/json'})),download:'bias_audit.json'});a.click();};
-document.getElementById('dlCSV').onclick =()=>{const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([rawTxt.textContent],{type:'text/csv'})),download:'bias_audit.csv'});a.click();};
+// actions
+document.getElementById('btnSim').onclick = ()=>{ current = simulate(seedData); render(current); };
+document.getElementById('btnCopyJSON').onclick = ()=>copy(JSON.stringify(current.tests,null,2));
+document.getElementById('btnCopyCSV').onclick  = ()=>copy(toCSV(current.tests));
+document.getElementById('btnViewJSON').onclick = ()=>{
+  const raw = JSON.stringify(current.tests,null,2);
+  document.getElementById('rawTxt').textContent = raw;
+  document.getElementById('rawDlg').showModal();
+};
+document.getElementById('dlJSON').onclick = ()=>{
+  const blob = new Blob([JSON.stringify(current.tests,null,2)],{type:'application/json'});
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'bias_audit.json' });
+  a.click();
+};
+document.getElementById('dlCSV').onclick = ()=>{
+  const csv = toCSV(current.tests);
+  const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(new Blob([csv],{type:'text/csv'})), download: 'bias_audit.csv' });
+  a.click();
+};
 </script>
-</body>
-</html>
+</body></html>
