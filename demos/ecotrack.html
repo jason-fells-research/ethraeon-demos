@@ -23,15 +23,24 @@
 
 <script src="/assets/demo.js"></script>
 <script>
+const playbook = {
+  "CO₂e (scope 2)": { explain:"Electricity emissions are down — keep pushing supplier contracts + scheduling.",
+    action:"Set a target: −10% next quarter via off-peak scheduling + green tariff switch." },
+  "Water use (m³)": { explain:"Usage trending down; likely operational tweaks are working.",
+    action:"Enable monthly leak check + rinse cycle optimization in Ops checklist." },
+  "Waste to landfill (kg)": { explain:"Landfill down — diversion improving.",
+    action:"Add a 30-day pilot: organics collection at 2 sites → measure diversion uplift." }
+};
 loadJSON('/data/ecotrack.json').then(d=>{
-  const m = d.metrics || [];
-  document.getElementById('metrics').innerHTML = m.map(x=>`
-    <div class="card" style="margin:8px 0">
-      <b>${x.kpi}</b><br>
-      Baseline: ${x.baseline} → Current: ${x.current} (<b>${x.delta >= 0 ? '+'+x.delta : x.delta}</b>)<br>
-      <small style="opacity:.8">${x.delta < 0 ? 'Good — improvement detected' : 'Warning — investigate'}</small>
-    </div>
-  `).join('');
+  document.querySelector('#metrics').innerHTML = d.metrics.map(m=>{
+    const p = playbook[m.kpi] || {explain:"", action:""};
+    return `<div class="card" style="margin:8px 0">
+      <b>${m.kpi}</b><br>
+      Baseline: ${m.baseline} → Current: ${m.current} (<b>${m.delta}</b>)<br>
+      <i>${p.explain}</i><br>
+      <button onclick="alert('${p.action.replace(/'/g,'\\'')}')">Suggested next step</button>
+    </div>`;
+  }).join('');
 });
 </script>
 </body></html>
