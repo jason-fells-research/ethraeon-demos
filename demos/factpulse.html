@@ -96,7 +96,7 @@ async function renderRecent(){
     const arr = j.facts||[];
     const seeded = [...seedDemoFacts(), ...arr];
     el('#stream').innerHTML = seeded.map(s=>`<div class="card" style="margin:8px 0">
-      <b>${s.text}</b><br>
+      ${s.demo?'<span class=\"badge demo\">Demo</span> ':''}<b>${s.text}</b><br>
       Risk score: ${(s.score*100|0)}%<br>
       Signals: ${[...new Set(s.signals||[])].join(', ')}<br>
       Actions: ${[...new Set(s.actions||[])].join(', ')}<br>

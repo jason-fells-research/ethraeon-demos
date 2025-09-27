@@ -94,7 +94,7 @@ function renderList(cases){
     const acts = actionsFor(c.category||'Uncategorized', sev);
     const links = linksFor(c.category||'Uncategorized');
     return `<div class="card" style="margin:8px 0">
-      <b>${c.case_id}</b> — <span class="pill" style="border-color:${sevColor(sev)};color:${sevColor(sev)}">Severity ${sev}/5</span>".replace("span", f"span class=\"badge sev-{sev}\"")<br>
+      ${c.demo?'<span class=\"badge demo\">Demo</span> ':''}<b>${c.case_id}</b> — <span class="pill" style="border-color:${sevColor(sev)};color:${sevColor(sev)}">Severity ${sev}/5</span>".replace("span", f"span class=\"badge sev-{sev}\"")<br>
       <i>${c.category||'Uncategorized'}</i> — ${c.summary}<br>
       <b>Recommended:</b> ${acts.join(' · ')}<br>
       ${(links.length?('<b>Refs:</b> '+links.map(x=>`<a target="_blank" rel="noopener" href="${x.u}">${x.t}</a>`).join(' · ')):'')}
@@ -145,7 +145,7 @@ renderList = function(cases){
     const acts = actionsFor(c.category, sev);
     const links = linksFor(c.category);
     return `<div class="card" style="margin:8px 0">
-      <b>${c.case_id}</b> — <span class="badge sev-${sev}">Severity ${sev}/5</span><br>
+      ${c.demo?'<span class=\"badge demo\">Demo</span> ':''}<b>${c.case_id}</b> — <span class="badge sev-${sev}">Severity ${sev}/5</span><br>
       <i>${c.category||'Uncategorized'}</i> — ${c.summary}<br>
       <b>Recommended:</b> ${acts.join(' · ')}<br>
       ${(links.length?('<b>Refs:</b> '+links.map(x=>`<a target="_blank" rel="noopener" href="${x.u}">${x.t}</a>`).join(' · ')):'')}
