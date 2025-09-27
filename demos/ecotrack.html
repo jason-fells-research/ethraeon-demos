@@ -1,53 +1,45 @@
-<!doctype html>
-<html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>EcoTrack Pro — Demo</title>
-<style>
-  :root{--bg:#0b0e13;--card:#111317;--line:#1b1e25;--text:#e6e9ef;--muted:#9aa3b2;--accent:#16c1b8}
-  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  .wrap{max-width:900px;margin:40px auto;padding:0 16px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin:14px 0}
-  .small{font-size:12px;color:var(--muted)} a{color:var(--accent)}
-  button{background:#0f131a;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font:inherit;cursor:pointer}
-</style>
-<div class="wrap">
-  <h1>EcoTrack Pro <span class="small">demo</span></h1>
-  <p class="small"><b>Why this matters:</b> EcoTrack shows operational deltas and proposes one-click playbook actions. In production, actions route to Ops (ticket/ChatOps/email) with owners and due dates.</p>
+<!doctype html><html lang="en">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EcoTrack Pro — Ethraeon</title>
+<link rel="stylesheet" href="/assets/brand.css">
+<body><div class="wrap">
+  <h1>EcoTrack Pro</h1>
+  <p class="small" style="color:#9aa4b2"><b>Why this matters:</b> shows operational deltas and proposes one-click playbook actions.
+  In production these route to Ops (tickets/ChatOps/email) with owners and due dates.</p>
 
-  <div id="metrics" class="card">Loading…</div>
+  <div id="metrics"></div>
 </div>
 
 <script>
-function escapeHtml(s){return (s||'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]))}
-
-const playbook = {
-  "Energy (kWh/site)": { explain:"Usage spiked; likely HVAC setpoints or runtime drift.", action:"Create ticket: Re-baseline HVAC setpoints and add night setbacks." },
-  "Water use (m³)": { explain:"Usage trending down; operational tweaks working.", action:"Add monthly leak checks + rinse cycle optimization to Ops checklist." },
-  "Waste to landfill (kg)": { explain:"Landfill down — diversion improving.", action:"Run a 30-day organics pilot at 2 sites; measure diversion uplift." }
+const data = {
+  metrics: [
+    {kpi:"Energy (kWh)", baseline: "1.2M", current: "1.05M", delta:"−12%"},
+    {kpi:"Water use (m³)", baseline: "220k", current: "205k", delta:"−7%"},
+    {kpi:"Waste to landfill (kg)", baseline: "80k", current: "62k", delta:"−22%"}
+  ]
 };
-
-(async ()=>{
-  try{
-    const d = await (await fetch('../data/ecotrack.json?v='+Date.now())).json();
-    document.querySelector('#metrics').innerHTML = d.metrics.map(m=>{
-      const p = playbook[m.kpi] || {explain:"",action:"Create ticket: assign owner to investigate."};
-      const action = escapeHtml(p.action);
-      return `<div class="card" style="margin:8px 0">
-        <b>${m.kpi}</b><br>
-        Baseline: ${m.baseline} → Current: ${m.current} (<b>${m.delta}</b>)<br>
-        <i>${p.explain}</i><br>
-        <button class="nextStep" data-action="${action}">Send to Ops (simulated)</button> <span class="small">Owner: Ops</span>
-      </div>`;
-    }).join('');
-  }catch{
-    document.querySelector('#metrics').textContent = 'Unable to load metrics.';
-  }
-})();
-
-document.addEventListener('click', (e)=>{
+const playbook = {
+  "Energy (kWh)": { explain:"Efficiency uplift driven by HVAC tuning & lighting controls.",
+    action:"Create ticket: expand BMS schedule windows + add peak-alerts." },
+  "Water use (m³)": { explain:"Usage trending down; operational tweaks working.",
+    action:"Create ticket: monthly leak checks + rinse-cycle optimization." },
+  "Waste to landfill (kg)": { explain:"Landfill down — diversion improving.",
+    action:"Create ticket: 30-day organics pilot at 2 sites; measure diversion uplift." }
+};
+function card(m){
+  const p = playbook[m.kpi]||{explain:"",action:""};
+  return `<div class="card" style="margin:8px 0">
+    <b>${m.kpi}</b><br>
+    Baseline: ${m.baseline} → Current: ${m.current} (<b>${m.delta}</b>)<br>
+    <i>${p.explain}</i><br>
+    <button class="nextStep" data-action="${p.action.replace(/"/g,'&quot;')}">Suggested next step</button>
+    <span class="small" style="margin-left:8px;color:#9aa4b2">Owner: Ops (sim)</span>
+  </div>`;
+}
+document.getElementById('metrics').innerHTML = data.metrics.map(card).join('');
+document.addEventListener('click',(e)=>{
   const btn = e.target.closest('.nextStep'); if(!btn) return;
-  alert('Sent to Ops (simulated): '+btn.getAttribute('data-action'));
+  alert('Sent to Ops (simulated): ' + (btn.getAttribute('data-action')||'Next step'));
 });
 </script>
-</html>
+</body></html>
