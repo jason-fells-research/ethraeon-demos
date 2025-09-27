@@ -1,58 +1,26 @@
 import { neon } from '@neondatabase/serverless';
-
-export async function handler(event) {
-  try {
-    if (event.httpMethod !== 'POST') {
-      return {
-        statusCode: 405,
-        body: JSON.stringify({ error: 'Method not allowed, use POST' }),
-      };
-    }
-
-    const body = JSON.parse(event.body || '{}');
-    const { caseId, summary } = body;
-
-    if (!caseId || !summary) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'caseId and summary are required' }),
-      };
-    }
-
-    const dbUrl =
-      process.env.NEON_DATABASE_URL ||
-      process.env.NETLIFY_DATABASE_URL ||
-      process.env.NETLIFY_DATABASE_URL_UNPOOLED;
-
-    if (!dbUrl) {
-      return {
-        statusCode: 500,
-        body: JSON.stringify({ error: 'Database URL not set in environment' }),
-      };
-    }
-
-    const sql = neon(dbUrl);
-
-    await sql`
-      INSERT INTO cases (case_id, summary)
-      VALUES (${caseId}, ${summary})
-    `;
-
-    return {
-      statusCode: 200,
-      body: JSON.stringify({
-        message: 'Case submitted successfully',
-        caseId,
-        summary,
-      }),
-    };
-  } catch (err) {
-    console.error('submit_case error', err);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({
-        error: err.message || 'Unknown error in submit_case',
-      }),
-    };
+let ready=false;
+async function ensure(sql){
+  if(ready) return;
+  await sql`CREATE TABLE IF NOT EXISTS cases (
+    id BIGSERIAL PRIMARY KEY,
+    case_id TEXT NOT NULL,
+    category TEXT,
+    summary TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+  );`;
+  ready=true;
+}
+export async function handler(event){
+  try{
+    const sql = neon(process.env.NEON_DATABASE_URL);
+    await ensure(sql);
+    const { caseId="", category="Uncategorized", summary="" } = JSON.parse(event.body||"{}");
+    if(!summary) return { statusCode:400, body: JSON.stringify({error:"summary required"}) };
+    const id = caseId || ('INC-'+Math.random().toString(36).slice(2,8).toUpperCase());
+    await sql`INSERT INTO cases (case_id, category, summary) VALUES (${id}, ${category}, ${summary})`;
+    return { statusCode:200, headers:{'content-type':'application/json'}, body: JSON.stringify({ok:true, caseId:id}) };
+  }catch(e){
+    return { statusCode:500, body: JSON.stringify({error:String(e)}) };
   }
 }
