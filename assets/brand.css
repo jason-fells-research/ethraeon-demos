@@ -174,3 +174,33 @@ button, .btn {
 @media (max-width: 640px) {
   table { display: block; overflow-x: auto; white-space: nowrap; }
 }
+/* --- Quick pass: dark mode + interaction polish --- */
+
+/* Force legible text in dialogs and modals */
+dialog, dialog * {
+  color: #eee !important;
+  background-color: #111317 !important;
+}
+
+/* Buttons: visible focus ring for accessibility */
+button:focus, .btn:focus, a:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Hover + active clarity */
+button:hover, .btn:hover { filter: brightness(1.1); }
+button:active, .btn:active { filter: brightness(0.9); }
+
+/* Inputs + textareas */
+input, textarea {
+  background: #1b1e25;
+  color: #eee;
+  border: 1px solid var(--hairline);
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+input:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(0,255,200,.3);
+}
