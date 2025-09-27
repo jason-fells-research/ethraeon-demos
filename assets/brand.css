@@ -125,3 +125,24 @@ dialog#rawDlg {
 
 /* Links inside cards a bit clearer */
 .card a { color: var(--accent); }
+/* --- Micro-pass: subtle readability + affordance polish --- */
+
+/* Global line-height bump for breathing room */
+body, p, li { line-height: 1.55; }
+
+/* Slightly larger click targets */
+button, .btn, a.card {
+  min-height: 36px;
+  padding: 6px 14px;
+}
+
+/* Headings slightly spaced from paragraphs */
+h1 + p, h2 + p, h3 + p { margin-top: -4px; }
+
+/* Hover state for links inside cards */
+.card a:hover {
+  text-decoration: underline;
+}
+
+/* Tables: bold header row */
+table th { font-weight: 600; color: #eee; }
