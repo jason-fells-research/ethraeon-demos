@@ -146,3 +146,31 @@ h1 + p, h2 + p, h3 + p { margin-top: -4px; }
 
 /* Tables: bold header row */
 table th { font-weight: 600; color: #eee; }
+/* --- Micro-pass: mobile & touch polish --- */
+
+/* Base font scale for smaller screens */
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+  h1 { font-size: 1.8em; }
+  h2 { font-size: 1.4em; }
+  h3 { font-size: 1.2em; }
+}
+
+/* Cards: add breathing space on mobile */
+@media (max-width: 640px) {
+  .card {
+    margin: 12px 0;
+    padding: 12px;
+  }
+}
+
+/* Touch-friendly buttons */
+button, .btn {
+  min-height: 44px; /* Apple/Google touch target standard */
+  border-radius: 6px;
+}
+
+/* Tables: allow horizontal scroll on small screens */
+@media (max-width: 640px) {
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+}
