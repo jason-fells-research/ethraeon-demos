@@ -1,101 +1,83 @@
-<!doctype html><html lang="en">
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Constitutional Bias — Ethraeon</title>
-<link rel="stylesheet" href="/assets/brand.css">
-<body><div class="wrap">
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../assets/brand.css">
+<title>Constitutional Bias Demo</title>
+<div class="wrap">
   <h1>Constitutional Bias Dashboard</h1>
-  <p class="small" style="opacity:.8">
-  This simulates a policy audit run. Click <b>Simulate run</b> to randomize PASS/FAIL outcomes.
-  Use <b>Copy JSON</b> or <b>Copy CSV</b> to export the audit bundle for an external system
-  (e.g., model governance, internal review). <b>View raw JSON</b> shows the exact payload auditors would receive.
-</p>
-  <p class="small" style="color:#9aa4b2">
-    Simulated audit to illustrate <b>policy checks</b>, <b>rationales</b>, and <b>exportable evidence</b>.
+  <p class="lead">
+    This demo shows how system outputs are stress-tested against <b>policy rules</b>.  
+    Click <b>Simulate run</b> to see pass/fail checks shuffle.  
+    Export raw results to share with compliance or auditors.
   </p>
 
-  <div class="card" id="panel">
-    <div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap">
-      <div><b>Last run:</b> <span id="ts">–</span></div>
-      <div>
-        <button id="btnSim">Simulate new run</button>
-        <button id="btnViewJSON">View/Export bundle</button>
-      </div>
-    </div>
+  <button id="btnSim">Simulate run</button>
+  <button id="btnViewJSON">View raw results</button>
+  <div id="status" style="margin:12px 0;font-weight:600"></div>
 
-    <table class="small" style="margin-top:10px">
-      <thead><tr><th>Status</th><th>Policy</th><th>Details</th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-
-    <div class="small" style="margin-top:10px;color:#9aa4b2">
-      <b>References:</b>
-      <a target="_blank" rel="noopener" href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI RMF</a> ·
-      <a target="_blank" rel="noopener" href="https://oecd.ai/en/ai-principles">OECD AI principles</a>
-    </div>
-  </div>
+  <table>
+    <thead><tr><th>Check</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>No harmful bias in moderation</td><td>PASS</td></tr>
+      <tr><td>No discrimination in hiring model</td><td>PASS</td></tr>
+      <tr><td>No political manipulation in ranking</td><td>PASS</td></tr>
+    </tbody>
+  </table>
 
   <dialog id="rawDlg">
-    <h3 style="margin-top:0">Exported audit bundle</h3>
-    <p class="small" style="color:#9aa4b2;margin-top:-6px">What you’d hand to internal audit or a regulator.</p>
-    <pre id="rawTxt">{}</pre>
-    <div style="display:flex;gap:8px;margin-top:8px">
+    <h3>Exported audit bundle</h3>
+    <pre id="rawTxt" style="max-height:360px;overflow:auto;background:#111317;
+      border:1px solid #1b1e25;padding:10px;border-radius:8px;color:#eee"></pre>
+    <div style="margin-top:8px">
       <button id="dlJSON">Download JSON</button>
       <button id="dlCSV">Download CSV</button>
-      <button onclick="document.getElementById('rawDlg').close()">Close</button>
+      <button onclick="rawDlg.close()">Close</button>
     </div>
   </dialog>
 
-  <p class="small" style="opacity:.75;margin-top:12px">Status: interactive simulation.</p>
+  <p class="small" style="margin-top:20px;opacity:.75">
+    Self-contained demo with sample checks.  
+    In production, checks map directly to your policy library.
+  </p>
 </div>
 
 <script>
-const seed = {
-  run_id: "SIM-"+Math.random().toString(36).slice(2,8).toUpperCase(),
-  generated_at: new Date().toISOString(),
-  tests: [
-    { status:"PASS", policy:"No unsafe instructions", details:"Explosives query blocked; user routed to safety page." },
-    { status:"PASS", policy:"Claims cite sources", details:"Factual answers included source links." },
-    { status:"FAIL", policy:"No ZIP-proxy discrimination", details:"Variant caused ZIP-based limit change; mitigation suggested." }
-  ]
-};
+function reshuffle(){
+  const rows=[...document.querySelectorAll('tbody tr')];
+  let results=[];
+  rows.forEach(r=>{
+    const st=r.querySelector('td+td');
+    const flip=Math.random()<0.4;
+    st.textContent = flip ? (st.textContent==='PASS'?'FAIL':'PASS') : st.textContent;
+    results.push({check:r.querySelector('td').textContent,status:st.textContent});
+  });
+  document.getElementById('status').textContent =
+    "Last simulated: "+new Date().toLocaleTimeString();
+  window.currentResults = results;
+}
+
 function toCSV(rows){
-  const head=["status","policy","details"], esc=v=>`"${String(v).replace(/"/g,'""')}"`;
-  return [head.join(","), ...rows.map(r=>head.map(k=>esc(r[k]??"")).join(","))].join("\n");
+  return "check,status\n"+rows.map(r=>`${r.check},${r.status}`).join("\n");
 }
-function paint(bundle){
-  document.getElementById('ts').textContent = new Date(bundle.generated_at).toLocaleString();
-  document.getElementById('rows').innerHTML = bundle.tests.map(t=>{
-    const col = t.status==="PASS" ? "#10b981" : (t.status==="FAIL" ? "#ef4444" : "#f59e0b");
-    return `<tr>
-      <td><span class="pill" style="background:transparent;border-color:${col};color:${col}">${t.status}</span></td>
-      <td><b>${t.policy}</b></td>
-      <td>${t.details}</td>
-    </tr>`;
-  }).join("");
-  window.__bundle = bundle;
-}
-function simulate(){
-  const b = JSON.parse(JSON.stringify(seed));
-  b.run_id = "SIM-"+Math.random().toString(36).slice(2,8).toUpperCase();
-  b.generated_at = new Date().toISOString();
-  const i = Math.floor(Math.random()*b.tests.length);
-  b.tests[i].status = (b.tests[i].status==="PASS"?"FAIL":"PASS");
-  paint(b);
-}
-document.getElementById('btnSim').onclick = simulate;
-document.getElementById('btnViewJSON').onclick = ()=>{
-  const b = window.__bundle || seed;
-  const pretty = JSON.stringify(b,null,2);
-  const csv = toCSV(b.tests);
-  rawTxt.textContent = pretty;
-  rawDlg.showModal();
-  dlJSON.onclick = ()=>{
-    const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([pretty],{type:'application/json'})),download:'bias_audit.json'}); a.click();
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.getElementById('btnSim').onclick=reshuffle;
+  document.getElementById('btnViewJSON').onclick=()=>{
+    const raw=JSON.stringify(window.currentResults||[],null,2);
+    rawTxt.textContent=raw;
+    rawDlg.showModal();
+    dlJSON.onclick=()=>{
+      const blob=new Blob([raw],{type:'application/json'});
+      const a=Object.assign(document.createElement('a'),
+        {href:URL.createObjectURL(blob),download:'bias_audit.json'});
+      a.click();
+    };
+    dlCSV.onclick=()=>{
+      const csv=toCSV(window.currentResults||[]);
+      const a=Object.assign(document.createElement('a'),
+        {href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'bias_audit.csv'});
+      a.click();
+    };
   };
-  dlCSV.onclick = ()=>{
-    const a = Object.assign(document.createElement('a'),{href:URL.createObjectURL(new Blob([csv],{type:'text/csv'})),download:'bias_audit.csv'}); a.click();
-  };
-};
-paint(seed);
+});
 </script>
-</body></html>
