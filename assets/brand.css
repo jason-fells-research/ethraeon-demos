@@ -304,3 +304,14 @@ a:visited { color: #7bdacb; }
 .badge.sev-3 { background:#332; color:#ff9; }
 .badge.sev-4 { background:#522; color:#f96; }
 .badge.sev-5 { background:#311; color:#fbb; }
+
+
+/* Demo case badge */
+.badge.demo {
+  background:#555;
+  color:#eee;
+  font-size:0.75em;
+  margin-left:6px;
+  padding:2px 6px;
+  border-radius:6px;
+}

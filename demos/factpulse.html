@@ -100,7 +100,7 @@ async function renderRecent(){
       Risk score: ${(s.score*100|0)}%<br>
       Signals: ${[...new Set(s.signals||[])].join(', ')}<br>
       Actions: ${[...new Set(s.actions||[])].join(', ')}<br>
-      <div class="small" style="opacity:.8">${s.demo?'— Demo case':''}</div>
+      <div class="small" style="opacity:.8">${s.demo?'<span class=\"badge demo\">Demo</span>':''}</div>
     </div>`).join('');
   }catch(e){
     el('#stream').innerHTML = '<div class="small" style="color:#ff6">Stream unavailable.</div>';

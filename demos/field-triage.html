@@ -149,7 +149,7 @@ renderList = function(cases){
       <i>${c.category||'Uncategorized'}</i> — ${c.summary}<br>
       <b>Recommended:</b> ${acts.join(' · ')}<br>
       ${(links.length?('<b>Refs:</b> '+links.map(x=>`<a target="_blank" rel="noopener" href="${x.u}">${x.t}</a>`).join(' · ')):'')}
-      <div class="small" style="opacity:.8">Logged: ${new Date(c.created_at).toLocaleString()} ${c.demo?'— Demo case':''}</div>
+      <div class="small" style="opacity:.8">Logged: ${new Date(c.created_at).toLocaleString()} ${c.demo?'<span class=\"badge demo\">Demo</span>':''}</div>
     </div>`;
   }).join('');
 };
