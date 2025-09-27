@@ -298,3 +298,9 @@ a:visited { color: #7bdacb; }
   font-weight:600;
 }
 .nextStep:hover { filter:brightness(1.1); }
+/* Full severity scale for triage badges */
+.badge.sev-1 { background:#233; color:#8ef; }
+.badge.sev-2 { background:#244; color:#9df; }
+.badge.sev-3 { background:#332; color:#ff9; }
+.badge.sev-4 { background:#522; color:#f96; }
+.badge.sev-5 { background:#311; color:#fbb; }
