@@ -325,3 +325,14 @@ a:visited { color: #7bdacb; }
   padding:2px 6px;
   border-radius:6px;
 }
+
+
+/* Demo badge flag icon */
+.badge.demo::before{
+  content:"\2691"; /* ⚑ */
+  margin-right:6px;
+  opacity:.9;
+  font-size:0.9em;
+  position:relative;
+  top:-0.05em;
+}
