@@ -265,3 +265,36 @@ a:visited { color: #7bdacb; }
   position:absolute; top:10px; right:12px; background:transparent;
   border:1px solid var(--hairline); border-radius:6px; padding:4px 8px;
 }
+/* ---- Lightning follow-up polish ---- */
+
+/* Button variants inline with demo contexts */
+.btn-ok     { background:#1c3b32; color:#cfe; border:none; }
+.btn-warn   { background:#3b321c; color:#ffe6b3; border:none; }
+.btn-danger { background:#3b1c22; color:#ffd7dc; border:none; }
+
+/* Bias dashboard + modal tweaks */
+#rawDlg pre, #rawDlg #rawTxt {
+  max-height: 400px;
+  overflow-y: auto;
+  font-size: 0.9em;
+  line-height: 1.45;
+}
+#rawDlg button { margin-right: 8px; }
+
+/* FactPulse stream cards */
+#stream .card { border-left: 4px solid var(--accent); padding-left: 10px; }
+
+/* Triage severity badges */
+.badge.sev-1 { background:#233; color:#8ef; }
+.badge.sev-3 { background:#332; color:#ff9; }
+.badge.sev-5 { background:#311; color:#fbb; }
+
+/* EcoTrack buttons look like clickable CTAs */
+.nextStep {
+  display:inline-block;
+  margin-top:8px;
+  background:var(--accent);
+  color:#06201c;
+  font-weight:600;
+}
+.nextStep:hover { filter:brightness(1.1); }
