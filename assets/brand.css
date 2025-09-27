@@ -43,3 +43,14 @@ button:hover{border-color:#2a3548}
   font-weight:600;padding:2px 8px;border-radius:999px}
 .badge-warn{background:#2a241a;border:1px solid #3a2e12;color:#ffcc00}
 .badge-bad{background:#2a1f1f;border:1px solid #3b2b2b;color:#ff6666}
+/* Make buttons clearly clickable */
+button, .btn {
+  background: var(--accent);
+  color: #000;
+  border: 1px solid #0d9488;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:hover, .btn:hover { filter: brightness(1.05); }
