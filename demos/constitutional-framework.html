@@ -1,63 +1,51 @@
 <!doctype html>
-<html lang="en">
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Ethraeon — Constitutional AI Framework (Demo)</title>
-<style>
-  :root{--bg:#0b0e13;--card:#111317;--line:#1b1e25;--text:#e6e9ef;--muted:#9aa3b2;--accent:#16c1b8}
-  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
-  .wrap{max-width:900px;margin:40px auto;padding:0 16px}
-  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px}
-  h1,h2{margin:0 0 10px} .small{font-size:12px;color:var(--muted)}
-  ul{margin:0 0 0 18px;padding:0} li{margin:6px 0}
-  a{color:var(--accent)}
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="stylesheet" href="../assets/brand.css">
+<title>Constitutional AI Framework</title>
 <div class="wrap">
-  <h1>Ethraeon — Constitutional AI Framework</h1>
-  <p class="small">Practical governance you can ship. Start with one workflow, bake in guardrails, and export audits on demand.</p>
+  <h1>Constitutional AI Framework</h1>
+  <p class="lead">
+    This page explains, in simple terms, how Ethraeon demos fit together.  
+    Think of it as the “operating system” for trust in AI.
+  </p>
 
-  <div class="grid">
-    <div class="card">
-      <h2>Core loop</h2>
-      <ul class="small">
-        <li><b>Observe:</b> instrument a decision (post, case, transaction).</li>
-        <li><b>Check:</b> run policy tests (bias, risk, safety, compliance).</li>
-        <li><b>Act:</b> route to humans/systems (ticket, escalation, notify).</li>
-        <li><b>Assure:</b> log outcomes and export system cards/audits.</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h2>What the demos show</h2>
-      <ul class="small">
-        <li><b>FactPulse:</b> risk signals + suggested actions (with sources).</li>
-        <li><b>Field Triage:</b> classify, score severity, recommend next steps.</li>
-        <li><b>Bias Dashboard:</b> pass/fail checks with exportable audit bundle.</li>
-        <li><b>EcoTrack:</b> deltas → one-click operational playbook.</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h2>Deployment model</h2>
-      <ul class="small">
-        <li><b>Start:</b> pick a single workflow and light up checks + exports.</li>
-        <li><b>Scale:</b> codify more policies; wire actions to your tools (Jira/ServiceNow/Slack/Email).</li>
-        <li><b>Assure:</b> schedule bias reports & system cards; keep auditors and leadership in the loop.</li>
-      </ul>
-      <div class="small">References:
-        <a target="_blank" rel="noopener" href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI RMF</a> ·
-        <a target="_blank" rel="noopener" href="https://oecd.ai/en/ai-principles">OECD AI principles</a>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Status</h2>
-      <ul class="small">
-        <li>Interactive demo; data sources are simulated unless noted.</li>
-        <li>Integrations (ticketing/ChatOps/data) are straightforward add-ons.</li>
-      </ul>
-    </div>
+  <div class="card">
+    <h2>What the Demos Show</h2>
+    <ul>
+      <li><b>FactPulse</b> → detect risk in content</li>
+      <li><b>Constitutional Bias</b> → audit models vs. policy</li>
+      <li><b>Field Triage</b> → log issues + next steps</li>
+      <li><b>EcoTrack</b> → ops deltas + playbook</li>
+    </ul>
   </div>
+
+  <div class="card">
+    <h2>How It Works</h2>
+    <ol>
+      <li><b>Ingest</b> → capture events (posts, cases, ops)</li>
+      <li><b>Check</b> → apply rules + score severity</li>
+      <li><b>Act</b> → log, route, export for action</li>
+    </ol>
+    <p class="small">Simple loop: Ingest → Check → Act.</p>
+  </div>
+
+  <div class="card">
+    <h2>Deployment Path</h2>
+    <ul>
+      <li><b>Start</b>: run one demo with sample data</li>
+      <li><b>Scale</b>: connect to live systems (Slack, Jira, CRM)</li>
+      <li><b>Assure</b>: export reports for audits & compliance</li>
+    </ul>
+  </div>
+
+  <div class="card small">
+    <b>References:</b>  
+    <a target="_blank" href="https://www.nist.gov/itl/ai-risk-management-framework">NIST AI RMF</a> ·  
+    <a target="_blank" href="https://oecd.ai/en/ai-principles">OECD AI principles</a> ·  
+    <a target="_blank" href="https://openai.com/policies">Provider policy examples</a>
+  </div>
+
+  <p class="small" style="opacity:.75">Status: interactive demo bundle.  
+  Data here is simulated unless noted.</p>
 </div>
-</html>
