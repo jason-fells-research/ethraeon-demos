@@ -204,3 +204,64 @@ input:focus, textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px rgba(0,255,200,.3);
 }
+/* ---- Final micro-pass: motion, buttons, badges, polish ---- */
+
+/* Respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* Subtle, consistent transitions */
+a, button, .btn, .card, input, textarea { transition: all .18s ease; }
+
+/* Buttons */
+button, .btn {
+  background: #1f2530;
+  color: #e8f6f3;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button[disabled], .btn[disabled] {
+  opacity: .6; cursor: not-allowed; filter: grayscale(.2);
+}
+.btn-primary {
+  background: var(--accent); color: #06201c; border-color: transparent;
+}
+.btn-ghost {
+  background: transparent; color: var(--accent);
+  border-color: var(--accent);
+}
+.btn-danger {
+  background: #4b1f25; color: #ffd7dc; border-color: #742b35;
+}
+
+/* Badges (we already use .badge) + variants */
+.badge { background:#223; color:#dfe; border:1px solid var(--hairline); }
+.badge.ok     { background:#1c3b32; color:#cfe; }
+.badge.warn   { background:#3b321c; color:#ffe6b3; }
+.badge.danger { background:#3b1c22; color:#ffd7dc; }
+
+/* Cards hover lift (subtle) */
+.card:hover { transform: translateY(-1px); box-shadow: 0 3px 14px rgba(0,0,0,.22); }
+
+/* Links: stronger default + clear visited */
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+a:visited { color: #7bdacb; }
+
+/* Muted helper text */
+.small, .muted { color: #a7b1c2; }
+
+/* Tables: sticky header on wide screens */
+@media (min-width: 720px) {
+  table thead th { position: sticky; top: 0; background:#0e1117; z-index:1; }
+}
+
+/* Dialog close affordance if we use a .close-x element */
+.close-x {
+  position:absolute; top:10px; right:12px; background:transparent;
+  border:1px solid var(--hairline); border-radius:6px; padding:4px 8px;
+}
