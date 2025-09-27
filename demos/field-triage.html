@@ -125,5 +125,34 @@ $('#f').onsubmit = async (e)=>{
 };
 
 loadRecent();
+
+function seedDemoCases(){
+  return [
+    {case_id:"DEMO-001", category:"Harassment", summary:"Coworker sent repeated unwanted messages.", created_at:new Date(), demo:true},
+    {case_id:"DEMO-002", category:"Data leak", summary:"Customer PII exposed in public repo.", created_at:new Date(), demo:true},
+    {case_id:"DEMO-003", category:"Self-harm", summary:"Student posted message about hurting themselves.", created_at:new Date(), demo:true},
+    {case_id:"DEMO-004", category:"Hate", summary:"Comment thread used racial slurs.", created_at:new Date(), demo:true},
+    {case_id:"DEMO-005", category:"Violence", summary:"Post included threats with weapon imagery.", created_at:new Date(), demo:true}
+  ];
+}
+
+const origRender = renderList;
+renderList = function(cases){
+  const seeded = [...seedDemoCases(), ...(cases||[])];
+  const host = document.querySelector('#recent');
+  host.innerHTML = seeded.map(c=>{
+    const sev = scoreSeverity(c.category, c.summary);
+    const acts = actionsFor(c.category, sev);
+    const links = linksFor(c.category);
+    return `<div class="card" style="margin:8px 0">
+      <b>${c.case_id}</b> — <span class="badge sev-${sev}">Severity ${sev}/5</span><br>
+      <i>${c.category||'Uncategorized'}</i> — ${c.summary}<br>
+      <b>Recommended:</b> ${acts.join(' · ')}<br>
+      ${(links.length?('<b>Refs:</b> '+links.map(x=>`<a target="_blank" rel="noopener" href="${x.u}">${x.t}</a>`).join(' · ')):'')}
+      <div class="small" style="opacity:.8">Logged: ${new Date(c.created_at).toLocaleString()} ${c.demo?'— Demo case':''}</div>
+    </div>`;
+  }).join('');
+};
+
 </script>
 </body></html>
