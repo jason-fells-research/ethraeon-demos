@@ -314,7 +314,7 @@ a:visited { color: #7bdacb; }
   color:#fff;
   font-weight:600;
   font-size:0.7em;
-  padding:2px 10px;
+  padding: 2px 9px;
   margin-right:6px;
   letter-spacing:0.5px;
   text-transform:uppercase;
@@ -330,7 +330,7 @@ a:visited { color: #7bdacb; }
 /* Demo badge flag icon */
 .badge.demo::before{
   content:"\2691"; /* ⚑ */
-  margin-right:6px;
+  margin-right: 4px;
   opacity:.9;
   font-size:0.9em;
   position:relative;
