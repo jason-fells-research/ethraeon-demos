@@ -1,27 +1,43 @@
-import { neon } from "@neondatabase/serverless";
+import { neon } from '@neondatabase/serverless';
 
-export async function handler() {
-  try {
+const json = (obj, code=200) => ({
+  statusCode: code,
+  headers: {
+    'content-type': 'application/json; charset=utf-8',
+    'cache-control': 'no-cache',
+    'access-control-allow-origin': '*',
+  },
+  body: JSON.stringify(obj),
+});
+
+export async function handler(){
+  try{
     const sql = neon(process.env.NEON_DATABASE_URL);
 
-    const rows = await sql`SELECT case_id, summary, category, created_at FROM cases ORDER BY created_at DESC LIMIT 20`;
+    // Table guard (no-op if exists)
+    await sql`
+      CREATE TABLE IF NOT EXISTS cases(
+        id BIGSERIAL PRIMARY KEY,
+        case_id  TEXT NOT NULL,
+        summary  TEXT NOT NULL,
+        created_at TIMESTAMPTZ DEFAULT now(),
+        category TEXT
+      );
+    `;
 
-    // normalize results
-    const safe = rows.map(r => ({
-      case_id: r.case_id,
-      summary: r.summary,
-      category: r.category || "Uncategorized",
-      created_at: r.created_at
-    }));
+    const rows = await sql`
+      SELECT
+        case_id,
+        COALESCE(NULLIF(TRIM(category), ''), 'Uncategorized') AS category,
+        summary,
+        created_at
+      FROM cases
+      ORDER BY created_at DESC
+      LIMIT 25
+    `;
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ cases: safe })
-    };
-  } catch (err) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: String(err) })
-    };
+    return json({ ok:true, cases: rows });
+  }catch(e){
+    return json({ ok:false, error:String(e) }, 500);
   }
 }
