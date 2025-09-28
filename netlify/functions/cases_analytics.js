@@ -3,10 +3,10 @@ const { neon } = require('@neondatabase/serverless');
 exports.handler = async (event) => {
   try {
     const sql = neon(process.env.NEON_DATABASE_URL);
-    const u = new URL(event.rawUrl || ('https://x/?'+(event.queryStringParameters?new URLSearchParams(event.queryStringParameters).toString():'') ));
+    const u = new URL(event.rawUrl || ('https://x/?' + (event.queryStringParameters ? new URLSearchParams(event.queryStringParameters).toString() : '')));
     const k = u.searchParams.get('k') || 'summary';
 
-    // Ensure table exists (lightweight, safe)
+    // Ensure table exists (safe)
     await sql`CREATE TABLE IF NOT EXISTS cases (
       id BIGSERIAL PRIMARY KEY,
       case_id TEXT NOT NULL,
@@ -40,18 +40,11 @@ exports.handler = async (event) => {
       FROM cases GROUP BY 1 ORDER BY count DESC;
     `;
     return ok({ summary: { total: totals[0]?.total || 0, by_category: byCat } });
-
   } catch (e) {
     return fail(e);
   }
 };
 
-function ok(obj){
-  return { statusCode: 200, headers: jsonNoCache(), body: JSON.stringify(obj) };
-}
-function fail(e){
-  return { statusCode: 500, headers: jsonNoCache(), body: JSON.stringify({ error: String(e) }) };
-}
-function jsonNoCache(){
-  return { 'content-type':'application/json', 'cache-control':'no-cache' };
-}
+function ok(obj){ return { statusCode: 200, headers: jsonNoCache(), body: JSON.stringify(obj) }; }
+function fail(e){ return { statusCode: 500, headers: jsonNoCache(), body: JSON.stringify({ error: String(e) }) }; }
+function jsonNoCache(){ return { 'content-type':'application/json', 'cache-control':'no-cache' }; }
