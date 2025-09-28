@@ -1,16 +1,17 @@
-import { neon } from '@neondatabase/serverless';
+import { neon } from "@neondatabase/serverless";
 
-function json(body, code = 200) {
+function json(body, status = 200) {
   return {
-    statusCode: code,
-    headers: { 'content-type': 'application/json', 'cache-control': 'no-cache' },
-    body: JSON.stringify(body),
+    statusCode: status,
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body, null, 2),
   };
 }
 
 export async function handler() {
   try {
     const sql = neon(process.env.NEON_DATABASE_URL);
+
     await sql`DO $$
       BEGIN
         IF to_regclass('public.mv_cases_summary') IS NOT NULL THEN
@@ -21,7 +22,8 @@ export async function handler() {
         END IF;
       END
     $$;`;
-    return json({ ok: true, refreshed: ['mv_cases_summary','mv_cases_daily14'] });
+
+    return json({ ok: true, refreshed: ["mv_cases_summary", "mv_cases_daily14"] });
   } catch (e) {
     return json({ ok: false, error: String(e) }, 500);
   }
