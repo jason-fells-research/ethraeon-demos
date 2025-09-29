@@ -1,0 +1,4 @@
+
+# ignore generated outreach exports
+Outreach/*.csv
+Outreach/*/*.csv
