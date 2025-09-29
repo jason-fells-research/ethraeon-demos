@@ -1,45 +1,70 @@
-<!doctype html><html lang="en">
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>EcoTrack Pro — Ethraeon</title>
-<link rel="stylesheet" href="/assets/brand.css">
-<body><div class="wrap">
-  <h1>EcoTrack Pro</h1>
-  <p class="small" style="color:#9aa4b2"><b>Why this matters:</b> shows operational deltas and proposes one-click playbook actions.
-  In production these route to Ops (tickets/ChatOps/email) with owners and due dates.</p>
-
-  <div id="metrics"></div>
-</div>
+<!doctype html><meta charset="utf-8">
+<title>EcoTrack — Ethraeon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bg:#0b0e13; --fg:#e7edf2; --muted:#9fb2c7; --accent:#2ea043; --accent-ink:#08130a; }
+  body { margin:2rem; font:16px system-ui, sans-serif; background:var(--bg); color:var(--fg); }
+  h1 { margin:0 0 1rem; font-size:1.6rem; }
+  .card { background:#121722; border:1px solid #1f2a3a; border-radius:12px; padding:1rem 1.25rem; max-width:720px; }
+  .row { display:flex; gap:1rem; flex-wrap:wrap; margin:.5rem 0 1rem; }
+  label { display:block; font-size:.9rem; color:var(--muted); margin-bottom:.25rem; }
+  input, select { background:#0e1420; color:var(--fg); border:1px solid #223148; border-radius:10px; padding:.6rem .75rem; min-width:220px; }
+  .cta { display:inline-flex; align-items:center; gap:.5rem; margin-top:.5rem;
+         background:var(--accent); color:var(--accent-ink); border:0; border-radius:999px;
+         padding:.7rem 1rem; font-weight:600; letter-spacing:.2px; cursor:pointer; }
+  .cta:focus-visible { outline:3px solid #99e2b4; outline-offset:2px; }
+  .cta:hover { filter:brightness(1.05); transform:translateY(-1px); }
+  .hint { font-size:.9rem; color:var(--muted); margin-top:.5rem }
+  .result { margin-top:1rem; background:#0e1420; border:1px dashed #2b3a52; border-radius:10px; padding:.9rem 1rem; }
+</style>
+<body>
+  <h1>EcoTrack — Suggested Next Step</h1>
+  <div class="card">
+    <div class="row">
+      <div>
+        <label for="footprint">Footprint (t CO₂e)</label>
+        <input id="footprint" type="number" step="0.1" value="12.5">
+      </div>
+      <div>
+        <label for="domain">Domain</label>
+        <select id="domain">
+          <option>Cloud compute</option>
+          <option>Data transfer</option>
+          <option>Facilities</option>
+          <option>Travel</option>
+        </select>
+      </div>
+    </div>
+    <button class="cta" id="suggestBtn" aria-describedby="hint">⚡ Suggested next step</button>
+    <div id="hint" class="hint">Click for a concrete, low-lift action based on your inputs.</div>
+    <div id="out" class="result" hidden></div>
+  </div>
 
 <script>
-const data = {
-  metrics: [
-    {kpi:"Energy (kWh)", baseline: "1.2M", current: "1.05M", delta:"−12%"},
-    {kpi:"Water use (m³)", baseline: "220k", current: "205k", delta:"−7%"},
-    {kpi:"Waste to landfill (kg)", baseline: "80k", current: "62k", delta:"−22%"}
-  ]
-};
-const playbook = {
-  "Energy (kWh)": { explain:"Efficiency uplift driven by HVAC tuning & lighting controls.",
-    action:"Create ticket: expand BMS schedule windows + add peak-alerts." },
-  "Water use (m³)": { explain:"Usage trending down; operational tweaks working.",
-    action:"Create ticket: monthly leak checks + rinse-cycle optimization." },
-  "Waste to landfill (kg)": { explain:"Landfill down — diversion improving.",
-    action:"Create ticket: 30-day organics pilot at 2 sites; measure diversion uplift." }
-};
-function card(m){
-  const p = playbook[m.kpi]||{explain:"",action:""};
-  return `<div class="card" style="margin:8px 0">
-    <b>${m.kpi}</b><br>
-    Baseline: ${m.baseline} → Current: ${m.current} (<b>${m.delta}</b>)<br>
-    <i>${p.explain}</i><br>
-    <button class="nextStep" data-action="${p.action.replace(/"/g,'&quot;')}">Suggested next step</button>
-    <span class="small" style="margin-left:8px;color:#9aa4b2">Owner: Ops (sim)</span>
-  </div>`;
+const rules = [
+  { domain: 'Cloud compute',  test:f=>f>10,  tip:'Move batch jobs to off-peak; set autoscaling floors to 0 for dev.', link:'https://www.thegreenwebfoundation.org/' },
+  { domain: 'Data transfer',  test:f=>f>5,   tip:'Enable HTTP/2 + Brotli; serve images as AVIF/WebP; cache at the edge.', link:'https://web.dev/fast/' },
+  { domain: 'Facilities',     test:f=>f>8,   tip:'Switch to time-of-use aware HVAC presets; weekly leak checks.', link:'https://www.ashrae.org/' },
+  { domain: 'Travel',         test:f=>f>3,   tip:'Default to rail under 5h; virtual for &lt;8 attendees; bundle trips.', link:'https://www.iso.org/standard/66453.html' },
+];
+function pick(domain, f){
+  const row = rules.find(r=>r.domain===domain && r.test(f));
+  if (row) return row;
+  // sensible default per domain
+  const byDomain = {
+    'Cloud compute':'Turn on lifecycle policies for object storage; archive cold data.',
+    'Data transfer':'Use image CDNs and immutable cache-busting; lazy-load non-critical media.',
+    'Facilities':'LED retrofits + occupancy sensors for conference rooms.',
+    'Travel':'Set a “video-first” guideline for internal meetings &lt;60min.',
+  };
+  return { domain, tip: byDomain[domain], link: 'https://sciencebasedtargets.org/' };
 }
-document.getElementById('metrics').innerHTML = data.metrics.map(card).join('');
-document.addEventListener('click',(e)=>{
-  const btn = e.target.closest('.nextStep'); if(!btn) return;
-  alert('Sent to Ops (simulated): ' + (btn.getAttribute('data-action')||'Next step'));
+document.getElementById('suggestBtn').addEventListener('click', ()=>{
+  const f = Number(document.getElementById('footprint').value||0);
+  const d = document.getElementById('domain').value;
+  const {tip, link} = pick(d,f);
+  const out = document.getElementById('out');
+  out.hidden = false;
+  out.innerHTML = `<strong>Next step:</strong> ${tip} <br><a href="${link}" target="_blank" rel="noopener">Reference</a>`;
 });
 </script>
-</body></html>
