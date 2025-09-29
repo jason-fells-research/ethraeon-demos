@@ -1,0 +1,18 @@
+Subject: Ethraeon Systems — Live Demos + Flutter/MDM follow-up
+
+Hi Mauro,
+
+Following up on our recent conversation: here’s a first look at Ethraeon Systems demos, showing our Constitutional AI framework in action.
+
+🔗 Live links
+- Demo Index → https://demos.ethraeon.systems/
+- Framework Explainer → https://demos.ethraeon.systems/demos/constitutional-framework
+
+For you, I’d also suggest we touch the MDM demo layer and Flutter app prototype. It’s simple but interactive — something we can iterate quickly together.
+
+This is also a great way to align with your vision for applied tools that enterprise clients can actually “touch” and deploy.
+
+Looking forward to showing you live.
+
+Best,
+Jason

@@ -1,0 +1,14 @@
+Subject: Ethraeon Systems — First Live Demos
+
+Hi Virginia,
+
+Wanted to share a first look at what I’ve been building. These are live demos of Ethraeon Systems’ Constitutional AI framework — showing how evaluation, governance, and safeguards can run in real-time.
+
+🔗 Live links
+- Demo Index → https://demos.ethraeon.systems/
+- Framework Explainer → https://demos.ethraeon.systems/demos/constitutional-framework
+
+It’s still early but already functional. Would love your feedback and thoughts on where it resonates — and where it should go next.
+
+Thanks,
+Jason

@@ -1,0 +1,19 @@
+Subject: Ethraeon Systems — AI Governance Framework (Live Demos)
+
+Hi Andrea,
+
+I’m excited to share live demos from Ethraeon Systems. These prototypes show how our Constitutional AI framework operates — focused on transparency, governance, and safeguards at enterprise scale.
+
+🔗 Live links
+- Demo Index → https://demos.ethraeon.systems/
+- Framework Explainer → https://demos.ethraeon.systems/demos/constitutional-framework
+
+Why this matters for compliance and governance:
+- Audit-ready reporting is built into the loop.
+- Risk visibility makes issues transparent, not hidden.
+- Alignment with EU AI Act — designed for regulatory clarity.
+
+I’d be happy to walk through the demos and discuss how this framework could support Casta Diva’s positioning.
+
+Best,
+Jason
