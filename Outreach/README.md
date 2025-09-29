@@ -19,9 +19,7 @@ Each wave includes:
 - [Sir Martin draft](WaveD/sir_martin.txt) | [Quickshare](WaveD/sir_martin_quickshare.txt)  
 - [Mark Cuban draft](WaveD/mark_cuban.txt) | [Quickshare](WaveD/mark_cuban_quickshare.txt)  
 - [Todd draft](WaveD/todd.txt) | [Quickshare](WaveD/todd_quickshare.txt)  
----
 
-## ✅ Always verify links before sending
+---
 - 🌐 Demo Index → https://demos.ethraeon.systems/  
 - 📑 Framework Explainer → https://demos.ethraeon.systems/demos/constitutional-framework  
-
