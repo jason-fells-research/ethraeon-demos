@@ -31,6 +31,7 @@
         <span id="msg" class="small" style="color:#9aa4b2"></span>
       </div>
     </form>
+<div id="recent"><h3>Recent Submissions</h3></div>
   </div>
 
   <h3 style="margin-top:16px">Recent cases</h3>
@@ -115,7 +116,7 @@ $('#f').onsubmit = async (e)=>{
       method:'POST',headers:{'content-type':'application/json'},
       body: JSON.stringify({caseId, category, summary})
     });
-    .then(()=>{
+    .then(()=>{const host=document.querySelector("#recent");const cat=document.querySelector("#category")?.value||"Uncategorized";const sum=document.querySelector("#summary")?.value||"(no summary)";const ts=new Date().toISOString();const card=`<div class="card"><div class="pill"></div><div></div><div class="small" style="opacity:.7"></div></div>`;host?.insertAdjacentHTML("afterbegin",card);const s=document.querySelector("#summary");if(s) s.value="";}).then(()=>{
   const host=document.querySelector("#recent");
   const cat=document.querySelector("#category")?.value||"Uncategorized";
   const sum=document.querySelector("#summary")?.value||"(no summary)";
