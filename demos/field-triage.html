@@ -115,7 +115,16 @@ $('#f').onsubmit = async (e)=>{
       method:'POST',headers:{'content-type':'application/json'},
       body: JSON.stringify({caseId, category, summary})
     });
-    if(!r.ok) throw new Error(await r.text());
+    .then(()=>{
+  const host=document.querySelector("#recent");
+  const cat=document.querySelector("#category")?.value||"Uncategorized";
+  const sum=document.querySelector("#summary")?.value||"(no summary)";
+  const ts=new Date().toISOString();
+  const card=`<div class="card"><div class="pill"></div><div></div><div class="small" style="opacity:.7"></div></div>`;
+  host?.insertAdjacentHTML("afterbegin", card);
+  const s=document.querySelector("#summary"); if(s) s.value="";
+}).catch(e=>console.error(e))
+if(!r.ok) throw new Error(await r.text());
     $('#msg').textContent='Saved.';
     $('#summary').value='';
     await loadRecent();

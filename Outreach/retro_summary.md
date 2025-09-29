@@ -28,3 +28,17 @@
 ✍️ Retro updated — 2025-09-29 — WaveB logged latest outreach status in Outreach/retro_summary.md
 ✍️ Retro updated — 2025-09-29 — WaveC logged latest outreach status in Outreach/retro_summary.md
 ✍️ Retro updated — 2025-09-29 — WaveD logged latest outreach status in Outreach/retro_summary.md
+📤 Sent — 2025-09-29 — WaveA — Linus
+📤 Sent — 2025-09-29 — WaveB — Peter Karlsson
+📤 Sent — 2025-09-29 — WaveD — Sir Martin
+📤 Sent — 2025-09-29 — WaveA — Linus
+📤 Sent — 2025-09-29 — WaveA — Virginia
+📤 Sent — 2025-09-29 — WaveA — Michiel
+📤 Sent — 2025-09-29 — WaveB — Peter Karlsson
+📤 Sent — 2025-09-29 — WaveB — James Widegren
+📤 Sent — 2025-09-29 — WaveB — Georgios Athanasiadis
+📝 Check-in — 2025-09-29 — WaveA — Linus — Sent demos, awaiting feedback
+📝 Check-in — 2025-09-29 — WaveA — Virginia — Sent demos, awaiting feedback
+📝 Check-in — 2025-09-29 — WaveA — Michiel — Sent demos, awaiting feedback
+📝 Check-in — 2025-09-29 — WaveB — Peter Karlsson — PDFs delivered, next call in 1 week
+📝 Check-in — 2025-09-29 — WaveB — James Widegren — PDFs delivered, next call in 1 week
